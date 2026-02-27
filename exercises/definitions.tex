@@ -1,0 +1,153 @@
+\directlua{pdf.setminorversion(7)}
+\RequirePackage{amsfonts,amsmath,amssymb,amsthm}
+\RequirePackage{lmodern}
+\RequirePackage{makeidx}
+\def\normalsize{}
+\RequirePackage{fontspec}
+\RequirePackage{stmaryrd}
+% \RequirePackage{lualatex-math}
+\RequirePackage{mathtools}
+\RequirePackage{unicode-math}
+\RequirePackage{polyglossia}
+\RequirePackage{enumerate}
+\RequirePackage{tikz}
+\usetikzlibrary{babel}
+\usetikzlibrary{cd,positioning}
+\usetikzlibrary{angles,quotes}
+
+\usepackage[a4paper,margin=3cm]{geometry}
+
+\usepackage{amsthm}
+
+\DeclareMathOperator{\sh}{Sh}
+\DeclareMathOperator{\id}{id}
+\undef\fam
+\DeclareMathOperator{\fam}{Fam}
+\DeclareMathOperator{\ty}{Ty}
+\DeclareMathOperator{\tmop}{Tm}
+\newcommand{\ctx}{\mathsf{Ctx}}
+\newcommand{\tm}[2]{\tmop {#1} \: {#2}}
+\newcommand{\ext}[2]{#1.#2}
+\newcommand{\exttm}[2]{\left\langle #1.#2 \right\rangle}
+\newcommand{\var}{\mathsf{var}}
+\DeclarePairedDelimiterX{\brackets}[1]{[}{]}{#1}
+\def\b{\brackets*}
+\newcommand{\subst}[1]{\b{#1}}
+\DeclareMathOperator{\ap}{ap}
+\newcommand{\pair}{\mathsf{pair}}
+\newcommand{\idty}[3][]{\mathrm{Id}_{#1}\p{#2, #3}}
+
+\newcommand{\ressymb}{\mathchoice
+  {\mkern-5mu↾\mkern-8mu}
+  {\mkern-5mu↾\mkern-8mu}
+  {↾\mkern-4mu}
+  {↾}}
+\newcommand{\res}[1]{\ressymb_{#1}}
+\newcommand{\cat}[1]{\mathscr{#1}}
+\newcommand{\smallcat}[1]{\mathbb{#1}}
+\newcommand{\namedcat}[1]{\mathrm{#1}}
+\newcommand{\sets}{\namedcat{Sets}}
+\newcommand{\hvsets}{\namedcat{HVSets}}
+\newcommand{\hvcwf}{\mathsf{HVTypes}}
+\newcommand{\quot}[2]{{#1}/_{\!#2}}
+%\newcommand{\eq}[3][]{#2 =_{#1} #3}
+%\newcommand{\eq}[3][]{\left⟦ #2 =_{#1} #3 \right⟧}
+\newcommand{\eq}[3][]{#2 \sim_{#1} #3}
+\newcommand{\e}[1]{\mathrm{E}{#1}}
+\renewcommand{\i}[1]{\left⟦#1\right⟧}
+\DeclarePairedDelimiterX{\parens}[1]{(}{)}{#1}
+\DeclarePairedDelimiterX{\absolute}[1]{\lvert}{\rvert}{#1}
+\def\p{\parens*}
+\def\abs{\absolute*}
+\def\carr{\absolute*}
+\newcommand{\set}[2]{\left\{ #1 \mid #2 \right\}}
+\newcommand{\apart}{\ensuremath{\mathrel{\#}}}
+\newcommand{\mb}[1]{\mathbf{#1}}
+\newcommand{\bb}[1]{\mathbb{#1}}
+\newcommand{\mf}[1]{\mathfrak{#1}}
+\newcommand{\mc}[1]{\mathcal{#1}}
+\DeclareMathOperator{\inl}{inl}
+\DeclareMathOperator{\inr}{inr}
+
+\newcommand{\defquantifier}[2]{%
+  \expandafter\undef\csname #1\endcsname%
+  \expandafter\newcommand\csname #1\endcsname[2]{{#2 ##1.}\;##2}%
+}
+\defquantifier{for}{\forall}
+\defquantifier{exist}{\exists}
+\defquantifier{unique}{\exists!}
+%\defquantifier{globalen}{\exists ᵍ}
+\defquantifier{exact}{ι}
+\defquantifier{eventually}{\nabla}
+\AtBeginDocument{
+\defquantifier{sigma}{\Sigma}
+\defquantifier{pi}{\Pi}
+\def\tilde{\widetilde}
+}
+\newcommand{\newdef}[1]{
+  \theoremstyle{definition}
+  \newtheorem{#1}[theorem]{\MakeUppercase #1}
+}
+\newcommand{\newex}[2]{
+  \theoremstyle{definition}
+  \newtheorem{#1*}[theorem]{\MakeUppercase #1}
+  \newenvironment{#1}[1][]{
+    \begin{#1*}[##1]\renewcommand*{\qedsymbol}{\(#2\)}\pushQED{\qed}
+  }{
+    \popQED\end{#1*}
+  }
+}
+
+\newcommand{\newthm}[1]{
+  \theoremstyle{plain}
+  \newtheorem{#1}[theorem]{\MakeUppercase #1}
+}
+
+\newcommand{\newpf}[2]{
+  \newenvironment{#1}[1][\MakeUppercase #1]{
+    \begin{proof}[##1]\renewcommand*{\qedsymbol}{\(#2\)}
+    }{
+    \end{proof}
+  }
+}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newdef{definition}
+\theoremstyle{definition}
+\newtheorem*{internal}{Internal Motivation}
+
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{note}[theorem]{Note}
+
+\theoremstyle{definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{intuition}[theorem]{Intuition}
+\newtheorem{construction}[theorem]{Construction}
+
+\newcommand{\Psh}[1]{\widehat{#1}}
+\newcommand{\Yon}{\mathbf{y}}
+
+\newcommand{\Assoc}{\mathbf{a}}
+\newcommand{\Incl}{\mathbf{i}}
+
+\newcommand{\Opens}{\mathcal{O}}
+
+
+\usepackage{tabularx}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\newcommand{\mordef}[5]{
+  \[
+  \begin{tabular}{rrcl}
+    \(#1 :\) & \(#2\)                     & \(→\) & \(#3\) \\
+             & \multicolumn{1}{c}{\(#4\)} & \(↦\) & \multicolumn{1}{c}{\(#5\)}
+  \end{tabular}
+  \]
+}
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:

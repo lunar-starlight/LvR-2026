@@ -1,0 +1,126 @@
+\documentclass[a4paper]{article}
+
+\input{../definitions.tex}
+
+\usepackage{mathpartir}
+
+\newdef{problem}
+\newpf{solution}{}
+
+\ExplSyntaxOn
+
+\NewDocumentEnvironment{problemdef}{+b}
+{\tl_gset:Nn \g_tmpa_tl {#1}}
+{
+  \begin{problem}
+    \begin{mathpar}
+      \tl_use:N \g_tmpa_tl
+    \end{mathpar}
+  \end{problem}
+  \begin{solution}
+    %\let\emptybox{\boxed{##1}}
+    \DeclareDocumentCommand{\emptybox}{m}{\boxed{##1}}
+    \begin{mathpar}
+      \tl_use:N \g_tmpa_tl
+    \end{mathpar}
+  \end{solution}
+}
+\ExplSyntaxOff
+
+\newcommand{\seq}[3]{#1 ⊢ #2 : #3}
+\def\emp{\bullet}
+\newcommand{\lam}[3]{λ #1 : #2.\: #3}
+\renewcommand{\pair}[2]{\p{#1, #2}}
+\newcommand{\emptybox}[1]{\boxed{\phantom{#1}}}
+\newcommand{\nullaryrule}[2]{
+  \ExpandArgs{c}\DeclareDocumentCommand{#1}{m}{\inferrule*[right=#2] { } {##1}}
+}
+\newcommand{\unaryrule}[2]{
+  \ExpandArgs{c}\DeclareDocumentCommand{#1}{mm}{\inferrule*[right=#2] {##2} {##1}}
+}
+\newcommand{\binaryrule}[2]{
+  \ExpandArgs{c}\DeclareDocumentCommand{#1}{mmm}{\inferrule*[right=#2] {##2 \\ ##3} {##1}}
+}
+\newcommand{\ternaryrule}[2]{
+  \ExpandArgs{c}\DeclareDocumentCommand{#1}{mmmm}{\inferrule*[right=#2] {##2 \\ ##3 \\ ##4} {##1}}
+}
+%\newcommand{\ax}[1]{\inferrule*[right=\textsc{Ax}] { } {#1}}
+\nullaryrule{ax}{\textsc{Ax}}
+\binaryrule{prodI}{×\textsc{I}}
+\unaryrule{prodEL}{×\textsc{E}1}
+\unaryrule{prodER}{×\textsc{E}2}
+\unaryrule{funI}{→\textsc{I}}
+\binaryrule{funE}{→\textsc{E}}
+
+
+\newcommand{\pr}[2]{\textsf{pr}_{#1} {#2}}
+
+\begin{document}
+
+\section{Products and function types}
+
+\subsection{Problems}
+
+
+\begin{problemdef}
+  \funI
+  {\seq \emp {\lam x A {\lam y B {\pair x y}}} {A → B → A×B}}
+  {\funI
+    {\seq {x : A} {{\lam y B {\pair x y}}} {\emptybox {B → A×B}}}
+    {\prodI
+      {\seq {\emptybox {x : A, y : B}} {\emptybox {\pair x y}} {A×B}}
+      {\ax {\seq {x : A, y : B} x A}}
+      {\ax {\emptybox {\seq {x : A, y : B} y B}}}
+    }
+  }
+\end{problemdef}
+
+\begin{problemdef}
+  \funI
+  {\seq \emp {\emptybox{\lam x {A×B} {\pair {\pr2 x} {\pr1 x}}}} {A×B → B×A}}
+  {\emptybox{\prodI
+      {\seq {x : A×B} {\pair {\pr2 x} {\pr1 x}} {A×B → B×A}}
+      {\prodER
+        {\seq {x : A×B} {\pr2 x} B}
+        {\ax {\seq {x : A×B} {x} {A×B}}}
+      }
+      {\prodEL
+        {\seq {x : A×B} {\pr1 x} A}
+        {\ax {\seq {x : A×B} {x} {A×B}}}
+      }
+    }
+  }
+\end{problemdef}
+
+\begin{solution}
+  \begin{mathpar}
+    \funI
+    {\seq \emp {\lam f {A → B → C} {\lam y B {\lam x A {f x y}}}} {\p{A → B → C} → B → A → C}}
+    {\funI
+      {\seq {f : A → B → C} {\lam y B {\lam x A {f x y}}} {B → A → C}}
+      {\funI
+        {\seq {f : A → B → C, y : B} {\lam x A {f x y}} {A → C}}
+        {\funE
+          {\seq {Γ ≔ f : A → B → C, y : B, x : A} {f x y} {C}}
+          {\funE
+            {\seq Γ {f x} {B → C}}
+            {\ax {\seq Γ f {A → B → C}}}
+            {\ax {\seq Γ x A}}
+          }
+          {\ax {\seq Γ y B}}
+        }
+      }
+    }
+  \end{mathpar}
+\end{solution}
+
+
+
+
+\end{document}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
