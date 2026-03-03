@@ -1,14 +1,15 @@
-\documentclass[a4paper]{article}
+\documentclass{article}
 
 \input{../definitions.tex}
 
 \usepackage{mathpartir}
-
 \newdef{problem}
+\usepackage[a4paper,margin=1cm,landscape]{geometry}
 \newpf{solution}{}
+%\usepackage[a4paper]{geometry}
+%\NewDocumentEnvironment{solution}{+b}{}{}
 
 \ExplSyntaxOn
-
 \NewDocumentEnvironment{problemdef}{+b}
 {\tl_gset:Nn \g_tmpa_tl {#1}}
 {
@@ -31,26 +32,30 @@
 \def\emp{\bullet}
 \newcommand{\lam}[3]{λ #1 : #2.\: #3}
 \renewcommand{\pair}[2]{\p{#1, #2}}
+\newcommand{\match}[5]{\textsf{match}\:{#1}\:| \inl {#2} ↦ {#3} | \inr {#4} ↦ {#5}}
 \newcommand{\emptybox}[1]{\boxed{\phantom{#1}}}
 \newcommand{\nullaryrule}[2]{
-  \ExpandArgs{c}\DeclareDocumentCommand{#1}{m}{\inferrule*[right=#2] { } {##1}}
+  \ExpandArgs{c}\DeclareDocumentCommand{#1}{m}{\inferrule*[right=\rlap{\(#2\)}] { } {##1}}
 }
 \newcommand{\unaryrule}[2]{
-  \ExpandArgs{c}\DeclareDocumentCommand{#1}{mm}{\inferrule*[right=#2] {##2} {##1}}
+  \ExpandArgs{c}\DeclareDocumentCommand{#1}{mm}{\inferrule*[right=\rlap{\(#2\)}] {##2} {##1}}
 }
 \newcommand{\binaryrule}[2]{
-  \ExpandArgs{c}\DeclareDocumentCommand{#1}{mmm}{\inferrule*[right=#2] {##2 \\ ##3} {##1}}
+  \ExpandArgs{c}\DeclareDocumentCommand{#1}{mmm}{\inferrule*[right=\rlap{\(#2\)}] {##2 \\ ##3} {##1}}
 }
 \newcommand{\ternaryrule}[2]{
-  \ExpandArgs{c}\DeclareDocumentCommand{#1}{mmmm}{\inferrule*[right=#2] {##2 \\ ##3 \\ ##4} {##1}}
+  \ExpandArgs{c}\DeclareDocumentCommand{#1}{mmmm}{\inferrule*[right=\rlap{\(#2\)}] {##2 \\ ##3 \\ ##4} {##1}}
 }
 %\newcommand{\ax}[1]{\inferrule*[right=\textsc{Ax}] { } {#1}}
 \nullaryrule{ax}{\textsc{Ax}}
 \binaryrule{prodI}{×\textsc{I}}
-\unaryrule{prodEL}{×\textsc{E}1}
-\unaryrule{prodER}{×\textsc{E}2}
+\unaryrule{prodEL}{×\textsc{E}₁}
+\unaryrule{prodER}{×\textsc{E}₂}
 \unaryrule{funI}{→\textsc{I}}
 \binaryrule{funE}{→\textsc{E}}
+\unaryrule{sumIL}{+\textsc{I}{}₁}
+\unaryrule{sumIR}{+\textsc{I}{}₂}
+\ternaryrule{sumE}{+\textsc{E}}
 
 
 \newcommand{\pr}[2]{\textsf{pr}_{#1} {#2}}
@@ -75,11 +80,15 @@
   }
 \end{problemdef}
 
-\begin{problemdef}
-  \funI
-  {\seq \emp {\emptybox{\lam x {A×B} {\pair {\pr2 x} {\pr1 x}}}} {A×B → B×A}}
-  {\emptybox{\prodI
-      {\seq {x : A×B} {\pair {\pr2 x} {\pr1 x}} {A×B → B×A}}
+\begin{problem}
+  Construct a term of type \(A×B → B×A\) in the empty context.
+\end{problem}
+\begin{solution}
+  \begin{mathpar}
+    \funI
+    {\seq \emp {\lam x {A×B} {\pair {\pr2 x} {\pr1 x}}} {A×B → B×A}}
+    {\prodI
+      {\seq {x : A×B} {\pair {\pr2 x} {\pr1 x}} {B×A}}
       {\prodER
         {\seq {x : A×B} {\pr2 x} B}
         {\ax {\seq {x : A×B} {x} {A×B}}}
@@ -89,9 +98,12 @@
         {\ax {\seq {x : A×B} {x} {A×B}}}
       }
     }
-  }
-\end{problemdef}
+  \end{mathpar}
+\end{solution}
 
+\begin{problem}
+  Construct a term of type \(\p{A → B → C} → B → A → C\) in the empty context.
+\end{problem}
 \begin{solution}
   \begin{mathpar}
     \funI
@@ -114,7 +126,75 @@
   \end{mathpar}
 \end{solution}
 
+\begin{problem}
+  Construct a term of type \(A+B → B+A\) in the empty context.
+\end{problem}
+\begin{solution}
+  \begin{mathpar}
+    \funI
+    {\seq \emp {\lam t {A+B} {\match t x {\inr x} y {\inl y}}} {A+B → B+A}}
+    {\sumE
+      {\seq {t : A+B} {\match t x {\inr x} y {\inl y}} {B+A}}
+      {\ax {\seq {t : A+B} t A+B}}
+      {\sumIR
+        {\seq {t : A+B, x : A} {\inr x} {B+A}}
+        {\ax {\seq {t : A+B, x : A} x {A}}}
+      }
+      {\sumIL
+        {\seq {t : A+B, y : B} {\inl y} {B+A}}
+        {\ax {\seq {t : A+B, y : B} y B}}
+      }
+    }
+  \end{mathpar}
+\end{solution}
 
+
+\begin{problem}
+  Construct a term of type \(A×(B+C) → A×B + A×C\) in the empty context.
+\end{problem}
+\begin{solution}
+  \begin{mathpar}
+    \funI
+    {\seq \emp
+      {\lam x {A×(B+C)} {\match {\pr2 x}
+          b {\inl {\pair {\pr1 x} b}}
+          c {\inr {\pair {\pr1 x} c}}}}
+      {A×(B+C) → A×B + A×C}}
+    {\sumE
+      {\seq {x : A×(B+C)}
+        {\match {\pr2 x}
+          b {\inl {\pair {\pr1 x} b}}
+          c {\inr {\pair {\pr1 x} c}}}
+        {A×B + A×C}}
+      {\prodER
+        {\seq {x : A×(B+C)} {\pr2 x} {B+C}}
+        {\ax {\seq {x : A×(B+C)} {x} {A×(B+C)}}}
+      }
+      {\sumIL
+        {\seq {Γ ≔ x : A×(B+C), b : B} {\inl {\pair {\pr1 x} b}} {A×B + A×C}}
+        {\prodI
+          {\seq {Γ} {\pair {\pr1 x} b} {A×B}}
+          {\prodEL
+            {\seq Γ {\pr1 x} A}
+            {\ax {\seq Γ x {A×(B+C)}}}
+          }
+          {\ax {\seq Γ b B}}
+        }
+      }
+      {\sumIR
+        {\seq {Δ ≔ x : A×(B+C), c : C} {\inr {\pair {\pr1 x} C}} {A×B + A×C}}
+        {\prodI
+          {\seq {Δ} {\pair {\pr1 x} c} {A×C}}
+          {\prodEL
+            {\seq Δ {\pr1 x} A}
+            {\ax {\seq Δ x {A×(B+C)}}}
+          }
+          {\ax {\seq Γ c C}}
+        }
+      }
+    }
+  \end{mathpar}
+\end{solution}
 
 
 \end{document}

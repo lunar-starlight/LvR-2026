@@ -1,0 +1,227 @@
+\documentclass{article}
+
+\input{../definitions.tex}
+
+\usepackage{mathpartir}
+\usepackage{tabto}
+
+\newdef{problem}
+% \usepackage[a4paper,margin=1cm,landscape]{geometry}
+\newpf{solution}{}
+\usepackage[a4paper,margin=2cm]{geometry}
+%\NewDocumentEnvironment{solution}{+b}{}{}
+
+\ExplSyntaxOn
+\NewDocumentEnvironment{problemdef}{o +b}
+{\tl_gset:Nn \g_tmpa_tl {#2}}
+{
+  \begin{problem}
+    #1
+    \tl_use:N \g_tmpa_tl
+  \end{problem}
+  \begin{solution}
+    \DeclareDocumentCommand{\emptybox}{m}{\boxed{##1}}
+    \tl_use:N \g_tmpa_tl
+  \end{solution}
+}
+\ExplSyntaxOff
+
+\newcommand{\seq}[3]{#1 ⊢ #2 : #3}
+\def\emp{\bullet}
+\newcommand{\lam}[3]{λ #1 : #2.\: #3}
+\renewcommand{\pair}[2]{\p{#1, #2}}
+\newcommand{\pr}[2]{\textsf{pr}_{#1} {#2}}
+\newcommand{\match}[5]{\textsf{match}\:{#1}\:| \inl {#2} ↦ {#3} | \inr {#4} ↦ {#5}}
+\newcommand{\emptybox}[1]{\boxed{\phantom{#1}}}
+
+% \def\trees{
+% \newcommand{\nullaryrule}[2]{
+%   \ExpandArgs{c}\DeclareDocumentCommand{#1}{m}{\inferrule*[right=\rlap{\(#2\)}] { } {##1}}
+% }
+% \newcommand{\unaryrule}[2]{
+%   \ExpandArgs{c}\DeclareDocumentCommand{#1}{mm}{\inferrule*[right=\rlap{\(#2\)}] {##2} {##1}}
+% }
+% \newcommand{\binaryrule}[2]{
+%   \ExpandArgs{c}\DeclareDocumentCommand{#1}{mmm}{\inferrule*[right=\rlap{\(#2\)}] {##2 \\ ##3} {##1}}
+% }
+% \newcommand{\ternaryrule}[2]{
+%   \ExpandArgs{c}\DeclareDocumentCommand{#1}{mmmm}{\inferrule*[right=\rlap{\(#2\)}] {##2 \\ ##3 \\ ##4} {##1}}
+% }
+% \nullaryrule{ax}{\textsc{Ax}}
+% \binaryrule{prodI}{×\textsc{I}}
+% \unaryrule{prodEL}{×\textsc{E}₁}
+% \unaryrule{prodER}{×\textsc{E}₂}
+% \unaryrule{funI}{→\textsc{I}}
+% \binaryrule{funE}{→\textsc{E}}
+% \unaryrule{sumIL}{+\textsc{I}{}₁}
+% \unaryrule{sumIR}{+\textsc{I}{}₂}
+% \ternaryrule{sumE}{+\textsc{E}}
+% }
+\newcommand{\linear}{
+\newcommand{\nullaryrule}[2]{
+  \ExpandArgs{c}\DeclareDocumentCommand{##1}{m}{\item \(####1\) \tab \(##2\)}
+}
+\newcommand{\unaryrule}[2]{
+  \ExpandArgs{c}\DeclareDocumentCommand{##1}{mmO{}}{{####2} {\item \(####1\) \tab \(##2\) ####3}}
+}
+\newcommand{\binaryrule}[2]{
+  \ExpandArgs{c}\DeclareDocumentCommand{##1}{mmmO{}}{{####2} {####3} {\item \(####1\) \tab \(##2\) ####4}}
+}
+\nullaryrule{ass}{\text{assumption}}
+\binaryrule{prodI}{∧\textsc{I}}
+\unaryrule{prodEL}{∧\textsc{E}₁}
+\unaryrule{prodER}{∧\textsc{E}₂}
+\DeclareDocumentCommand{\funI}{smmmO{}}{
+  {{\ass {##2}} {##4}}
+  {\item \(\IfBooleanTF{##1}{\p{##2}}{##2} → ##3\) \tab \(→\textsc{I}\) ##5}}
+\binaryrule{funE}{→\textsc{E}}
+\unaryrule{sumIL}{∨\textsc{I}₁}
+\unaryrule{sumIR}{∨\textsc{I}₂}
+\DeclareDocumentCommand{\sumE}{mmmmmmO{}}{
+  {##2}
+  {{\ass {##3}} {##4}}
+  {{\ass {##5}} {##6}}
+  {\item \(##1\) \tab \(∨\textsc{E}\) ##7}}
+}
+
+\begin{document}
+
+\section{Products and function types}
+
+\subsection{Problems}
+
+\begin{problemdef}
+  [Show \(P → Q → P∧Q\) is valid by filling in the below proof.\\]
+  \parbox[t][][t]{\textwidth}{
+    \begin{enumerate}
+    \item \(P\) \tab assumption
+    \item \emptybox{Q} \tab \emptybox{\text{assumption}}
+    \item \(P ∧ Q\) \tab \(∧\textsc{I}\) (1) (\emptybox{2})
+    \item \(Q → P∧Q\) \tab \(→\textsc{I}\) (2--3)
+    \item \(\emptybox{P → Q → P∧Q}\) \tab \(→\textsc{I}\) (\emptybox{\text{1--4}})
+    \end{enumerate}
+  }
+\end{problemdef}
+
+
+\begin{problem}
+  Show \(P∧Q → Q∧P\) is valid.
+\end{problem}
+\begin{solution}
+  \linear
+  \parbox[t][][t]{\textwidth}{
+    \begin{enumerate}
+      \funI
+      {P∧Q} {Q∧P}
+      {\prodI
+        {Q∧P}
+        {\prodER {Q} {} [(1)]}
+        {\prodEL {P} {} [(1)]}
+        [(2) (3)]
+      }
+      [(1--4)]
+    \end{enumerate}
+  }
+\end{solution}
+
+\begin{problem}
+  Show \(\p{P → Q → R} → Q → P → R\) is valid.
+\end{problem}
+\begin{solution}
+  \linear
+  \parbox[t][][t]{\textwidth}{
+  \begin{enumerate}
+    \funI*
+    {P → Q → R} {Q → P → R}
+    {\funI
+      {Q} {P → R}
+      {\funI
+        {P} {R}
+        {\funE
+          {R}
+          {\funE {Q → R} {} {} [(1) (3)]}
+          {}
+          [(4) (2)]
+        }
+        [(3--5)]
+      }
+      [(2--6)]
+    }
+    [(1--7)]
+  \end{enumerate}
+  }
+\end{solution}
+
+
+\begin{problem}
+  Show \(P∨Q → Q∨P\) is valid.
+\end{problem}
+\begin{solution}
+  \linear
+  \parbox[t][][t]{\textwidth}{
+    \begin{enumerate}
+      \funI
+      {P∨Q} {Q∨P}
+      {\sumE
+        {Q ∨ P}
+        {}
+        {P}
+        {\sumIR
+          {Q∨P}
+          {}
+          [(2)]
+        }
+        {Q}
+        {\sumIL
+          {Q∨P}
+          {}
+          [(4)]
+        }
+        [(1) (2--3) (4--5)]
+      }
+      [(1) (2--6)]
+    \end{enumerate}
+  }
+\end{solution}
+
+
+\begin{problem}
+  Show \(P∧(Q∨R) → P∧Q ∨ P∧R\) is valid.
+\end{problem}
+\begin{solution}
+  \linear
+  \parbox[t][][t]{\textwidth}{
+    \begin{enumerate}
+      \funI
+      {P∧(Q∨R)} {P∧Q ∨ P∧R}
+      {\prodEL {P} {} [(1)]
+        \sumE
+        {P∧Q ∨ P∧R}
+        {\prodEL {Q∨R} {} [(1)]}
+        {Q}
+        {\sumIL
+          {P∧Q ∨ P∧R}
+          {\prodI {P∧Q} {} {} [(2) (4)]}
+          [(5)]
+        }
+        {R}
+        {\sumIR
+          {P∧Q ∨ P∧R}
+          {\prodI {P∧R} {} {} [(2) (7)]}
+          [(8)]
+        }
+        [(3) (4--6) (7--9)]
+      }
+      [(1--10)]
+    \end{enumerate}
+  }
+\end{solution}
+
+
+\end{document}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
