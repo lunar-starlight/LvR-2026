@@ -6,6 +6,7 @@
 \usepackage{tabto}
 
 \newdef{problem}
+\newdef{exercise}
 % \usepackage[a4paper,margin=1cm,landscape]{geometry}
 \newpf{solution}{}
 \usepackage[a4paper,margin=2cm]{geometry}
@@ -59,7 +60,7 @@
 % }
 \newcommand{\linear}{
 \newcommand{\nullaryrule}[2]{
-  \ExpandArgs{c}\DeclareDocumentCommand{##1}{m}{\item \(####1\) \tab \(##2\)}
+  \ExpandArgs{c}\DeclareDocumentCommand{##1}{mO{}}{\item \(####1\) \tab \(##2\) ####2}
 }
 \newcommand{\unaryrule}[2]{
   \ExpandArgs{c}\DeclareDocumentCommand{##1}{mmO{}}{{####2} {\item \(####1\) \tab \(##2\) ####3}}
@@ -82,11 +83,20 @@
   {{\ass {##3}} {##4}}
   {{\ass {##5}} {##6}}
   {\item \(##1\) \tab \(∨\textsc{E}\) ##7}}
+\nullaryrule{botE}{⊥\textsc{E}}
+\unaryrule{forE}{∀\textsc{E}}
+\DeclareDocumentCommand{\forI}{mmmO{}}{
+  {{\ass {##1}} {##3}}
+  {\item \(\for{##1}{##2}\) \tab \(∀\textsc{I}\) ##4}}
+\DeclareDocumentCommand{\existE}{mmmmmO{}}{
+  {##2}
+  {{\ass {##3}} {\ass {##4} {##5}}}
+  {\item \(##1\) \tab \(∃\textsc{E}\) ##6}}
 }
 
 \begin{document}
 
-\section{Products and function types}
+\section{Linear-style natural deduction for predicate logic}
 
 \subsection{Problems}
 
@@ -217,6 +227,103 @@
   }
 \end{solution}
 
+\begin{problem}
+  Show \(P ∨ ⊥ → P\).
+\end{problem}
+\begin{solution}
+  \linear
+  \parbox[t][][t]{\textwidth}{
+    \begin{enumerate}
+      \funI
+      {P ∨ ⊥} {P}
+      {\sumE
+        {P}
+        {}
+        {P}
+        {}
+        {⊥}
+        {\botE P [(P)]}
+        [(1) (2--2) (3--4)]
+      }
+      [(1--5)]
+    \end{enumerate}
+  }
+\end{solution}
+
+\begin{problem}
+  Show \(P∨\for{x : A}{Q x} → \for{y : A}{P ∨ Qy}\).
+\end{problem}
+\begin{solution}
+  \linear
+  \parbox[t][][t]{\textwidth}{
+    \begin{enumerate}
+      \funI
+      {P∨\for{x : A}{Q x}} {\for{x : A}{P ∨ Qx}}
+      {\forI
+        {y : A} {P ∨ Qy}
+        {\sumE
+          {P ∨ Qy}
+          {}
+          {P}
+          {\sumIL {P ∨ Qy} {} [(3)]}
+          {\for{x : A}{Q x}}
+          {\sumIR
+            {P ∨ Qy}
+            {\forE {Q y} {} [(5) (2)]}
+            [(6)]
+          }
+          [(1) (3--4) (5--7)]
+        }
+        [(2--8)]
+      }
+      [(1--9)]
+    \end{enumerate}
+  }
+\end{solution}
+
+\begin{problem}
+  Show \(\for{x : A}{P x → Q} → \p{\exist{y : A}{Py}} → Q\).
+\end{problem}
+\begin{solution}
+  \linear
+  \parbox[t][][t]{\textwidth}{
+    \begin{enumerate}
+      \funI
+      {\for{x : A}{P x → Q}} {\p{\exist{y : A}{Py}} → Q}
+      {\funI
+        {\exist{y : A}{Py}} {Q}
+        {\existE
+          {Q}
+          {}
+          {y : A}
+          {Py}
+          {\funE
+            {Q}
+            {}
+            {\forE
+              {Py → Q}
+              {}
+              [(1) (3)]
+            }
+            [(5) (4)]
+          }
+          [(2) (3,4--6)]
+        }
+        [(2--7)]
+      }
+      [(1--8)]
+    \end{enumerate}
+  }
+\end{solution}
+
+\begin{exercise}
+  Show the converse to the above, aka \(\p{\p{\exist{y : A}{Py}} → Q} → \for{x : A}{P x → Q}\).
+\end{exercise}
+\begin{exercise}
+  Compare the proofs here with the proofs (of the ``same'' problems) from last
+  week. For the problems, which we did not give a tree-style proof last week,
+  try it yourself. You can use the linear-style proofs as a blueprint.
+\end{exercise}
 
 \end{document}
 
