@@ -1,5 +1,3 @@
-{-# OPTIONS --prop #-}
-
 ---------------------------------------------------------------------------
 -- Week 6 exercises for the Logika v računalništvu course at UL FMF      --
 -- Lecturer: Alex Simpson                                                --
@@ -27,13 +25,12 @@ module Ex6 where
    and an additional buffer should appear and list the open goals (holes in Agda terminology) that
    need to be filled in this file:
 
-   ?0 : Bool
+   ?0 : ℕ
    ?1 : ℕ
-   ?2 : ℕ
    ...
-   ?13 : length xs ≡ᴺ length (map f xs)
-   ?14 : length xs ≤ length ys
-   ?15 : xs ≤ᴸ ys
+   ?16 : f x ≡ f y
+   ?17 : B y
+   ?18 : tr p (f x) ≡ f y
 -}
 
 
@@ -198,119 +195,43 @@ mapᵛ f xs = {!!}
 
 
 ----------------
--- Exercise 6 --
-----------------
-
-{-
-   There are several ways of defining relations on types. For example, lets define the ≤ relation on
-   natural numbers.
--}
-
-module WithProp where
-  data _≤_ : ℕ → ℕ → Prop where
-    z≤n : {n : ℕ} → zero ≤ n
-    s≤s : {m n : ℕ} → m ≤ n → suc m ≤ suc n
-
-  infix 4 _≤_
-
-module WithSet where
-  data _≤_ : ℕ → ℕ → Set where
-    z≤n : {n : ℕ} → zero ≤ n
-    s≤s : {m n : ℕ} → m ≤ n → suc m ≤ suc n
-
-  infix 4 _≤_
-
-module WithProp₂ where
-  open WithProp
-
-  {-
-    However trying to define a Type-elimination principle for `≤` with `Prop` fails. You can attempt
-    to finish the definition below, but since you are unable to pattern-match on `p`.
-  -}
-  module _ (P : (m n : ℕ) → Set)
-    (pzn : (n : ℕ) → P zero n)
-    (pss : (m n : ℕ) → P m n → P (suc m) (suc n)) where
-
-    ≤-ind : (m n : ℕ) → m ≤ n → P m n
-    ≤-ind zero    n       p = pzn n
-    ≤-ind (suc m) (suc n) p = {!!}
-    --≤-ind (suc m) (suc n) p = pss m n (≤-ind m n p)
-
-
-module WithSet₂ where
-  open WithSet
-
-  module _ (P : (m n : ℕ) → Set)
-    (pzn : (n : ℕ) → P zero n)
-    (pss : (m n : ℕ) → P m n → P (suc m) (suc n)) where
-
-    ≤-ind : (m n : ℕ) → m ≤ n → P m n
-    ≤-ind m n z≤n = pzn n
-    ≤-ind m n (s≤s p) = pss _ _ (≤-ind _ _ p)
-    -- Here we must omit the arguments to `pss` and `≤-ind`, since they should be predecessors of
-    -- `m` and n. Alternatively, we should pattern-match on `m` and `n` to extract their
-    -- predecessors (we already know they are successors).
-
-
-module WithPropButWithSetEliminationAsWell where
-
-  data ⊥ᵖ : Prop where
-
-  record ⊤ᵖ : Prop where
-    constructor tt
-
-  _≤_ : ℕ → ℕ → Prop
-  zero  ≤ n     = ⊤ᵖ
-  suc m ≤ zero  = ⊥ᵖ
-  suc m ≤ suc n = m ≤ n
-
-  infix 4 _≤_
-
-  module _ {P : (m n : ℕ) → Set}
-    (pzn : (n : ℕ) → P zero n)
-    (pss : (m n : ℕ) → P m n → P (suc m) (suc n)) where
-
-    ≤-ind : (m n : ℕ) → m ≤ n → P m n
-    ≤-ind zero n p = pzn n
-    ≤-ind (suc m) (suc n) p = pss m n (≤-ind m n p)
-
-open WithPropButWithSetEliminationAsWell
-open WithSet using () renaming (_≤_ to _≤ˢ_; z≤n to z≤ˢn; s≤s to s≤ˢs)
-
-to-set : (m n : ℕ) → m ≤ n → m ≤ˢ n
-to-set = ≤-ind (λ _ → z≤ˢn) λ _ _ → s≤ˢs
-
-to-set' : (m n : ℕ) → m ≤ n → m ≤ˢ n
-to-set' zero n p = z≤ˢn
-to-set' (suc m) (suc n) p = s≤ˢs (to-set' m n p)
-
-to-prop : (m n : ℕ) → m ≤ˢ n → m ≤ n
-to-prop zero n p = tt
-to-prop (suc m) (suc n) (s≤ˢs p) = to-prop m n p
-
-
-----------------
 -- Exercise 7 --
 ----------------
 
 {-
-   Show that the relation gives a preorder on ℕ.
+   Define the maps between vectors and lists.
 -}
 
-reflexive : (n : ℕ) → n ≤ n
-reflexive n = {!!}
+to-list : {A : Set} {n : ℕ} → Vec A n → List A
+to-list xs = {!!}
 
-transitive : (m n k : ℕ) → m ≤ n → n ≤ k → m ≤ k
-transitive n m k p q = {!!}
+to-vec : {A : Set} (xs : List A) → Vec A (length xs)
+to-vec xs = {!!}
 
 
 ----------------
 -- Exercise 8 --
 ----------------
 
+
 {-
-   To show that the relation is a partial order we need a notion of equality. We can define
-   propositional equality as we did in the lectures.
+   Define concatenation of lists and vectors.
+-}
+
+_++_ : {A : Set} → List A → List A → List A
+xs ++ ys = {!!}
+
+_++ᵛ_ : {A : Set} {m n : ℕ} → Vec A m → Vec A n → Vec A (m + n)
+xs ++ᵛ ys = {!!}
+
+
+----------------
+-- Exercise 9 --
+----------------
+
+
+{-
+   The type of propositional equality is defined as follows.
 -}
 
 infix 4 _≡_
@@ -319,263 +240,49 @@ data _≡_ {A : Set} (x : A) : A → Set where
 
 {-# BUILTIN EQUALITY _≡_  #-}
 
-anti-symmetric : (m n : ℕ) → m ≤ n → n ≤ m → m ≡ n
-anti-symmetric zero zero p q = refl
-anti-symmetric (suc m) (suc n) p q with anti-symmetric m n p q
-... | refl = refl
-
-anti-symmetricˢ : (m n : ℕ) → m ≤ˢ n → n ≤ˢ m → m ≡ n
-anti-symmetricˢ m n z≤ˢn z≤ˢn = refl
-anti-symmetricˢ m n (s≤ˢs p) (s≤ˢs q) with anti-symmetricˢ _ _ p q
-... | refl = refl
-
-------------------
--- Exercise 1 --
-------------------
-
 {-
-   Recall the type of booleans from the lecture.
+   Show `≡` is an equivalence relation.
 -}
 
-data Bool : Set where
-  true  : Bool
-  false : Bool
+symm : {A : Set} {x y : A} → x ≡ y → y ≡ x
+symm p = {!!}
+
+trans : {A : Set} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
+trans p q = {!!}
 
 {-
-   Define the XOR operation on booleans by pattern-matching.
-
-   Recall that you can pattern-match on the function arguments by
-   writing the name of the corresponding argument in the hole in the
-   right-hand side of the definition, and then running the `C-c C-c`
-   command with the cursor placed in the given hole.
-
-   Also recall that you can fill and complete a hole with what you
-   have written in it by putting the cursor in the hole and then
-   running the `C-c C-space` command. If you attempted to fill a
-   hole with a term of incorrect type (say using a natural number
-   instead of a boolean), Agda will report a typechecking error.
+   Furthermore, transitivity is associative.
 -}
 
-_⊕_ : Bool → Bool → Bool
-b ⊕ b' = {!!}
-
-{-
-   You can test whether your definition computes correctly by using
-   the `C-c C-n` command, which uses Agda's normalisation engine to
-   compute the normal form of a given expression. For example, using
-   `C-c C-n` on `false ⊕ (true ⊕ false)` should return `true`.
-
-   Feel free to use `C-c C-n` also with other functions on this
-   exercise sheet to test whether your solutions compute correctly.
--}
-
-
-----------------
--- Exercise 4 --
-----------------
-
-{-
-   In addition to the unary representation of natural numbers
-   given above and in the lecture (the ℕ type), one can represent
-   natural numbers more compactly and more efficiently in binary
-   format as bitstrings, defined as the following datatype Bin.
-
-   For example, in Agda one represents the binary number 1010₂
-   (which stands for the natural number 10) as `⟨⟩ I O I O`.
-
-   You get the unicode symbol `⟨` by entering either `\<` or `\langle`,
-   and the unicode symbol `⟩` by entering either `\>` or `\rangle`.
--}
-
-data Bin : Set where
-  ⟨⟩ : Bin
-  _O : Bin → Bin
-  _I : Bin → Bin
-
-infixl 20 _O
-infixl 20 _I
-
-{-
-   Define the increment function on such binary numbers, e.g.,
-   such that you have `b-incr (⟨⟩ I O I I) ≡ ⟨⟩ I I O O`.
--}
-
-b-incr : Bin → Bin
-b-incr b = {!!}
-
-
-----------------
--- Exercise 5 --
-----------------
-
-{-
-   Define functions `to` and `from` that translate unary numbers
-   to binary numbers and vice versa. If needed for the solution,
-   don't be afraid of defining and using new auxiliary functions
-   (either using a `where` clause or by defining these auxiliary
-   functions at the top level before the function where you
-   want to use them).
--}
-
-to : ℕ → Bin
-to n = {!!}
-
-from : Bin → ℕ
-from b = {!!}
-
-
-----------------
--- Exercise 6 --
-----------------
-
-{-
-   Recall the "is even" predicate for unary numbers.
--}
-
-data Even : ℕ → Set where
-  even-z : Even zero
-  even-ss : {n : ℕ} → Even n → Even (suc (suc n))
-
-{-
-   Define an analogous "is even" predicate for binary numbers.
--}
-
-data Even₂ : Bin → Set where
-  {- EXERCISE: add the constructors for this inductive predicate here -}
-
-
-----------------
--- Exercise 7 --
-----------------
-
-{-
-   Prove that the `to` function translates evens to evens. Again,
-   if needed, do not be afraid to define auxiliary functions/proofs.
--}
-
-to-even : {n : ℕ} → Even n → Even₂ (to n)
-to-even p = {!!}
-
-
-----------------
--- Exercise 8 --
-----------------
-
-{-
-   Observe that for the simplicity and uniformity of its definition,
-   the type Bin has redundant elements---in your above solutions, you
-   likely treated both `⟨⟩` and `⟨⟩ O` both as the unary number 0.
-
-   Define a unary inductive predicate NonEmptyBin to classify those
-   binary numbers that are non-empty in the sense that `⟨⟩` is not a
-   non-empty binary number on its own---it can only terminate a
-   sequence of Os and Is from the left. In other words, the type
-   `NonEmptyBin (⟨⟩ I O I I)` should be inhabited while the type
-   `NonEmptyBin ⟨⟩` should not be inhabited.
--}
-
-data NonEmptyBin : Bin → Set where
-  {- EXERCISE: add the constructors for this inductive predicate here -}
-
-{-
-   To verify that `NonEmptyBin ⟨⟩` is indeed not inhabited as intended,
-   show that you can define a function from it to Agda's empty type
-   (an inductive type with no constructors, hence with no inhabitants).
--}
-
-data ⊥ : Set where
-
-⟨⟩-empty : NonEmptyBin ⟨⟩ → ⊥
-⟨⟩-empty p = {!!}
-
-
-----------------
--- Exercise 9 --
-----------------
-
-{-
-   Using the non-empty binary numbers predicate, rewrite the `from`
-   function so that it takes an additional proof argument that
-   witnesses that the given binary number argument is non-empty.
-
-   Due to this additional proof argument, your solution will not
-   need a case for the binary number argument being `⟨⟩` any more.
--}
-
-from-ne : (b : Bin) → NonEmptyBin b → ℕ
-from-ne b p = {!!}
+assoc : {A : Set} {x y z w : A} → (p : x ≡ y) → (q : y ≡ z) → (r : z ≡ w)
+      → trans (trans p q) r ≡ trans p (trans q r)
+assoc p q r = {!!}
 
 
 -----------------
--- Exercise 12 --
+-- Exercise 10 --
 -----------------
-
-{-
-   Recall the (observational) equality relation for unary numbers.
--}
-
-infix 4 _≡ᴺ_
-
-data _≡ᴺ_ : ℕ → ℕ → Set where
-  z≡ᴺz : zero ≡ᴺ zero
-  s≡ᴺs : {m n : ℕ} → m ≡ᴺ n → suc m ≡ᴺ suc n
-
-{-
-   Prove that the `map` function preserves the length of the given list.
--}
-
-map-≡ᴺ : {A B : Set} {f : A → B} → (xs : List A) → length xs ≡ᴺ length (map f xs)
-map-≡ᴺ xs = {!!}
-
-
------------------
--- Exercise 13 --
------------------
-
-{-
-   Recall the "less than or equal" relation on unary numbers.
--}
 
 
 {-
-   Define an analogous inductive binary relation `≤ᴸ` for lists
-   based on their lengths,  e.g., `[]` should be less than or
-   equal (using `≤ᴸ`) to the lists `[]` and `[ 42 ]`.
+   There are some more useful properties of propositional equalities. If two elements of a type are
+   propositionally equal we can essentially replace one with the other.
+
+   This will help us define more complicated things later.
 -}
 
-data _≤ᴸ_ {A : Set} : List A → List A → Set where
-  {- EXERCISE: add the constructors for this inductive relation here -}
+ap : {A B : Set} (f : A → B) → {x y : A} → x ≡ y → f x ≡ f y
+ap f p = {!!}
 
-infix 4 _≤ᴸ_
+tr : {A : Set} {B : A → Set} {x y : A} → x ≡ y → B x → B y
+tr p a = {!!}
 
-
------------------
--- Exercise 14 --
------------------
 
 {-
-   Prove that the lengths of two lists related by `≤ᴸ` are related
-   by the `≤` relation, and vice versa.
+   We can also define `ap` for dependent functions.
 -}
 
--- length-≤ᴸ-≦ : {A : Set} {xs ys : List A} → xs ≤ᴸ ys → length xs ≤ length ys
--- length-≤ᴸ-≦ p = {!!}
-
--- length-≤-≦ᴸ : {A : Set} (xs ys : List A) → length xs ≤ length ys → xs ≤ᴸ ys
--- length-≤-≦ᴸ xs ys p = {!!}
+apd : {A : Set} {B : A → Set} (f : (x : A) → B x) → {x y : A} (p : x ≡ y) → tr p (f x) ≡ f y
+apd f p = {!!}
 
 
------------------
--- Exercise 14 --
------------------
-
-{-
-   If you have solved all the above exercises, then as extra, more
-   challening problems, you can try to equip the binary numbers with
-   operations and relations we have defined for the unary numbers:
-   - addition
-   - multiplication
-   - (observational) equality
-   - "less than or equal" order
-   - show that `from` takes even numbers to even numbers
--}
