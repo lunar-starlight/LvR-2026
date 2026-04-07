@@ -11,72 +11,16 @@
 -- Course website: https://ucilnica.fmf.uni-lj.si/course/view.php?id=252 --
 ---------------------------------------------------------------------------
 
-module Ex7 where
+module Ex7-stdlib where
 
-data ℕ : Set where
-  zero : ℕ
-  suc  : ℕ → ℕ
+open import Data.Nat using (ℕ; zero; suc; _+_; _*_)
+open import Data.List using (List; []; _∷_; length; map)
+open import Data.Vec using (Vec; []; _∷_)
+open import Function using (id; _∘_)
 
-infixl 6  _+_
-infixl 7  _*_
-
-_+_ : ℕ → ℕ → ℕ
-zero    + n = n
-(suc m) + n = suc (m + n)
-
-_*_ : ℕ → ℕ → ℕ
-zero * n = zero
-suc m * n = n + m * n
-
-{-# BUILTIN NATURAL ℕ #-}
-{-# BUILTIN NATPLUS _+_ #-}
-{-# BUILTIN NATTIMES _*_ #-}
-
-infixr 5 _∷_
-
-data List (A : Set) : Set where
-  []  : List A
-  _∷_ : A → List A → List A
-
-{-# BUILTIN LIST List #-}
-
-length : {A : Set} → List A → ℕ
-length [] = zero
-length (x ∷ xs) = suc (length xs)
-map : {A B : Set} → (A → B) → List A → List B
-map f [] = []
-map f (x ∷ xs) = f x ∷ map f xs
-
-data Vec (A : Set) : ℕ → Set where
-  []  : Vec A 0
-  _∷_ : {n : ℕ} → A → Vec A n → Vec A (suc n)
-
-infix 4 _≡_
-
-data _≡_ {A : Set} (x : A) : A → Set where
-  refl : x ≡ x
-
-symm : {A : Set} {x y : A} → x ≡ y → y ≡ x
-symm refl = refl
-
-trans : {A : Set} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
-trans refl q = q
-
-cong : {A B : Set} (f : A → B) → {x y : A} → x ≡ y → f x ≡ f y
-cong f refl = refl
-
-subst : {A : Set} {B : A → Set} {x y : A} → x ≡ y → B x → B y
-subst refl a = a
-
-data ⊥ : Set where
-
-infix 3 ¬_
-¬_ : Set → Set
-¬ P = P → ⊥
-
-infix 4 _≢_
-_≢_ : {A : Set} → A → A → Set
-x ≢ y = ¬ x ≡ y
+import Relation.Binary.PropositionalEquality as Eq
+open Eq using (_≡_; refl; sym; trans; cong; subst; _≢_)
+open import Relation.Nullary using (¬_)
 
 {-
    We also postulate the principle of function extensionality so
@@ -297,8 +241,6 @@ infix 4 _>_
 
 
 open import Data.Unit
---data ⊤ : Set where
---  tt : ⊤
 
 lookup-totalᵀ : {n : ℕ}
               → (xs : Vec ⊤ n)
@@ -395,6 +337,22 @@ to-list-length xs = {!!}
 -- MORE INVOLVED EXERCISES [START] --
 -------------------------------------
 -------------------------------------
+
+open import Function using (id; _∘_)
+
+-----------------
+-- Exercise 9 --
+-----------------
+
+{-
+   Prove that `to-list` is the left inverse of `to-vec`. Observe that you have to prove equality
+   between functions.
+-}
+
+list-vec-list : {A : Set}
+              → (to-list ∘ to-vec) ≡ id {A = List A}
+list-vec-list = {!!}
+
 
 -----------------
 -- Exercise 10 --
@@ -673,3 +631,31 @@ isbst-recᵖ-<∞ = {!!}
 
 insert-bst : (t : Tree ℕ) → (n : ℕ) → IsBST t → IsBST (insert t n)
 insert-bst = {!!}
+
+-----------------
+-- Exercise 16 --
+-----------------
+
+{-
+   Prove that `list-vec` is the left inverse of `vec-list`. Observe that you have to prove equality
+   between functions.
+
+   Note that if we simply wrote `id` as the right-hand side of the equational property below we
+   would get a typing error about a mismatch in the natural number indices. Find a way to fix the
+   type of a given vector to use it in the right-hand side of the equation.
+
+   Hint 1: For a slightly unsatisfactory solution, think how you could convert a given vector to
+   another of a given type using recursion.
+
+   Hint 2: For a more complete solution, recall from the exercises how one change the type of a
+   given value (e.g., a vector) using a previously proved equality proof, and then combine this with
+   one of the equational lemmas we proved above.
+
+   WARNING: The hint 2 solution of this exercise is probably the most complex on this exercise
+   sheet, as it will require some careful thought when generalising the concrete statement you are
+   trying to prove, relating element-wise equality of vectors to the `≡` relation on vectors, etc.
+   So we suggest you leave this one for the very last. -}
+
+vec-list-vec : {A : Set} {n : ℕ}
+             → to-vec ∘ to-list ≡ {!!}
+vec-list-vec = {!!}
