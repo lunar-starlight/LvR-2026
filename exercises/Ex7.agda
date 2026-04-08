@@ -296,9 +296,8 @@ infix 4 _>_
 -}
 
 
-open import Data.Unit
---data ⊤ : Set where
---  tt : ⊤
+data ⊤ : Set where
+  tt : ⊤
 
 lookup-totalᵀ : {n : ℕ}
               → (xs : Vec ⊤ n)
