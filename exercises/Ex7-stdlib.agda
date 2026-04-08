@@ -280,6 +280,10 @@ data Fin : ℕ → Set where
 safe-lookup : {A : Set} {n : ℕ} → Vec A n → Fin n → A
 safe-lookup xs i = {!!}
 
+{-
+   Think about how to define a safe lookup function for lists.
+-}
+
 
 ----------------
 -- Exercise 7 --

@@ -11,7 +11,7 @@
 -- Course website: https://ucilnica.fmf.uni-lj.si/course/view.php?id=252 --
 ---------------------------------------------------------------------------
 
-module Ex7 where
+module Ex7-no-stdlib where
 
 data ℕ : Set where
   zero : ℕ
@@ -336,6 +336,10 @@ data Fin : ℕ → Set where
 
 safe-lookup : {A : Set} {n : ℕ} → Vec A n → Fin n → A
 safe-lookup xs i = {!!}
+
+{-
+   Think about how to define a safe lookup function for lists.
+-}
 
 
 ----------------
