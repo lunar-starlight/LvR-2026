@@ -1,3 +1,4 @@
+{-# OPTIONS --prop #-}
 ---------------------------------------------------------------------------
 -- Week 8 exercises for the Logika v računalništvu course at UL FMF      --
 -- Lecturer: Alex Simpson                                                --
@@ -14,9 +15,9 @@ module Sol8 where
 open import Data.Empty           using (⊥; ⊥-elim)
 open import Data.Fin             using (Fin; zero; suc)
 open import Data.List            using (List; []; _∷_; _++_; length; map)
-open import Data.List.Properties using (map-id; map-compose)
+open import Data.List.Properties using (map-id; map-∘)
 open import Data.Maybe           using (Maybe; nothing; just)
-open import Data.Nat             using (ℕ; zero; suc; _+_; _≤_; z≤n; s≤s; _<_)
+--open import Data.Nat             using (ℕ; zero; suc; _+_; _≤_; z≤n; s≤s; _<_)
 open import Data.Nat.Properties  using (+-identityˡ; +-identityʳ; +-suc; +-comm)
 open import Data.Product         using (Σ; _,_; proj₁; proj₂; Σ-syntax; _×_)
 open import Data.Sum             using (_⊎_; inj₁; inj₂)
@@ -27,10 +28,39 @@ open import Function             using (id; _∘_)
 open import Relation.Nullary     using (¬_)
 
 import Relation.Binary.PropositionalEquality as Eq
-open Eq                          using (_≡_; refl; sym; trans; cong; subst)
+open Eq                          using (_≡_; refl; sym; trans; cong; subst; _≢_)
 
 open import Axiom.Extensionality.Propositional using (Extensionality)
 postulate fun-ext : ∀ {a b} → Extensionality a b
+
+{-
+   `Prop`-based inequalities. You can instead use the standard library
+   inequalities, by deleting the code below and uncommenting the `import
+   Data.Nat` above.
+-}
+open import Data.Nat             using (ℕ; zero; suc; _+_)
+
+data ⊥ᵖ : Prop where
+
+record ⊤ᵖ : Prop where
+  constructor tt
+
+_≤_ : ℕ → ℕ → Prop
+zero  ≤ n     = ⊤ᵖ
+suc m ≤ zero  = ⊥ᵖ
+suc m ≤ suc n = m ≤ n
+
+infix 4 _≤_
+
+_<_ : ℕ → ℕ → Prop
+n < m = suc n ≤ m
+
+_>_ : ℕ → ℕ → Prop
+n > m = m < n
+
+infix 4 _<_
+infix 4 _>_
+
 
 ----------------
 -- Exercise 1 --
@@ -41,8 +71,8 @@ postulate fun-ext : ∀ {a b} → Extensionality a b
 -}
 
 safe-list-lookup : {A : Set} → (xs : List A) → (i : ℕ) → i < length xs → A
-safe-list-lookup (x ∷ xs) zero    (s≤s p) = x
-safe-list-lookup (x ∷ xs) (suc i) (s≤s p) = safe-list-lookup xs i p
+safe-list-lookup (x ∷ xs) zero    _ = x
+safe-list-lookup (x ∷ xs) (suc i) p = safe-list-lookup xs i p
 
 {-
    Establish the extensionality principle for lists: if two equal-length lists
@@ -86,9 +116,9 @@ list-ext {xs = []} {[]} _ _ = refl
 list-ext {xs = x ∷ xs} {y ∷ ys} h g =
    begin
      x ∷ xs
-   ≡⟨ cong (_∷ xs) (g 0 (s≤s z≤n) (s≤s z≤n)) ⟩
+   ≡⟨ cong (_∷ xs) (g 0 _ _) ⟩
      y ∷ xs
-   ≡⟨ cong (y ∷_) (list-ext (suc-inj h) λ i p q → g (suc i) (s≤s p) (s≤s q)) ⟩
+   ≡⟨ cong (y ∷_) (list-ext (suc-inj h) λ i p q → g (suc i) p q) ⟩
      y ∷ ys
    ∎
    where
@@ -107,9 +137,6 @@ list-ext {xs = x ∷ xs} {y ∷ ys} h g =
    difficulties such as having to additionally push `subst` through
    constructors.
 -}
-
-
-
 
 
 ----------------
@@ -165,12 +192,12 @@ open _≃_
         → Σ[ x ∈ A ] (Σ[ y ∈ B x ] (C x y))
           ≃
           Σ[ xy ∈ Σ[ x ∈ A ] (B x) ] (C (proj₁ xy) (proj₂ xy))
-
 Σ-assoc = record
-  { to = λ z → (z .proj₁ , z .proj₂ .proj₁) , z .proj₂ .proj₂
-  ; from = λ z → proj₁ (z .proj₁) , proj₂ (z .proj₁) , z .proj₂
+  { to      = λ z → (z .proj₁ , z .proj₂ .proj₁) , z .proj₂ .proj₂
+  ; from    = λ z → proj₁ (z .proj₁) , proj₂ (z .proj₁) , z .proj₂
   ; from∘to = λ _ → refl
-  ; to∘from = λ _ → refl }
+  ; to∘from = λ _ → refl
+  }
 
 {-
    Second, prove the same thing using copatterns. For a reference on copatterns,
@@ -181,7 +208,6 @@ open _≃_
         → Σ[ x ∈ A ] (Σ[ y ∈ B x ] (C x y))
           ≃
           Σ[ xy ∈ Σ[ x ∈ A ] (B x) ] (C (proj₁ xy) (proj₂ xy))
-
 to Σ-assoc'      = λ z → (z .proj₁ , z .proj₂ .proj₁) , z .proj₂ .proj₂
 from Σ-assoc'    = λ z → proj₁ (z .proj₁) , proj₂ (z .proj₁) , z .proj₂
 from∘to Σ-assoc' = λ _ → refl
@@ -228,11 +254,34 @@ list-eta refl refl = refl
 ≃-List' i .to∘from []       = refl
 ≃-List' i .to∘from (y ∷ ys) = list-eta (i .to∘from y) (≃-List' i .to∘from ys)
 
+≃-List'' : {A B : Set} → A ≃ B → List A ≃ List B
+≃-List'' i .to        = map (to i)
+≃-List'' i .from      = map (from i)
+≃-List'' i .from∘to xs =
+  begin
+    map (from i) (map (to i) xs)
+  ≡⟨ sym (map-∘ xs) ⟩
+    map (from i ∘ to i) xs
+  ≡⟨ cong (λ t → map t xs) (fun-ext (i .from∘to)) ⟩
+    map id xs
+  ≡⟨ map-id xs ⟩
+    xs
+  ∎
+≃-List'' i .to∘from ys =
+  begin
+    map (to i) (map (from i) ys)
+  ≡⟨ sym (map-∘ ys) ⟩
+    map (to i ∘ from i) ys
+  ≡⟨ cong (λ t → map t ys) (fun-ext (i .to∘from)) ⟩
+    map id ys
+  ≡⟨ map-id ys ⟩
+    ys
+  ∎
+
 
 ----------------
 -- Exercise 5 --
 ----------------
-
 
 {-
    We now move on to decidable types. In particular, if we wish to search for
@@ -240,29 +289,57 @@ list-eta refl refl = refl
    elements.
 -}
 
+{-
+   The type `Dec A` says "we either have a term of type `A` or we have a proof
+   that `A` is empty".
+-}
+
 data Dec (A : Set) : Set where
-  yes : A → Dec A
+  yes :    A  → Dec A
   no  : (¬ A) → Dec A
 
-record DecSet : Set₁ where
-  field
-    DSet   : Set
-    test-≡ : (x y : DSet) → Dec (x ≡ y)
+{-
+   Here `Set₁` has something to do with universe levels, which we likely will
+   not cover in this course. You can think of it as "the type of classes", but
+   it is safe to ignore.
+-}
 
-open DecSet
+record DecType : Set₁ where
+  field
+    carr   : Set
+    test-≡ : (x y : carr) → Dec (x ≡ y)
+
+{-
+   The type `DecType` is the type of "decidable types". It is a record type and
+   it's elements have two fields; `carr` is the underlying type and `test-≡` is
+   the "decidability predicate", deciding the equality between any two elements.
+
+   In general not every type is decidable. Consider the type of infinite
+   non-descending sequences of booleans. Then you can not write a program that
+   decides whether a sequence is all zeroes, or if at some point it switches to
+   a one. Consider what such a program will do. I can keep giving you zeroes as
+   values of the sequence until at some finite time the program decides that the
+   sequence either is or is not all zeroes. In either case from that point on I
+   can decide that the sequence I had in mind is _not_ the sequence the program
+   guessed. Since programs are deterministic and terminating, I can always
+   construct a sequence, for which the program decides incorrectly. Thus, the
+   type of infinite non-descending sequences of booleans is not decidable.
+-}
+
+open DecType
 
 {-
    Given a type with decidable equality, prove that a list holding
    elements of this type is itself a type with decidable equality.
 -}
 
-DecList : (DS : DecSet) → Σ[ DS' ∈ DecSet ] (DSet DS' ≡ List (DSet DS))
-DecList DS .proj₁ = record { DSet = DecList-DSet ; test-≡ = DecList-test-≡ }
+DecList : (DS : DecType) → Σ[ DS' ∈ DecType ] (carr DS' ≡ List (carr DS))
+DecList DS .proj₁ = record { carr = DecList-carr ; test-≡ = DecList-test-≡ }
    where
-      DecList-DSet : Set
-      DecList-DSet = List (DSet DS)
+      DecList-carr : Set
+      DecList-carr = List (carr DS)
 
-      DecList-test-≡ : (xs ys : List (DSet DS)) → Dec (xs ≡ ys)
+      DecList-test-≡ : (xs ys : List (carr DS)) → Dec (xs ≡ ys)
       DecList-test-≡ [] [] = yes refl
       DecList-test-≡ [] (x ∷ ys) = no (λ ())
       DecList-test-≡ (x ∷ xs) [] = no (λ ())
@@ -272,3 +349,203 @@ DecList DS .proj₁ = record { DSet = DecList-DSet ; test-≡ = DecList-test-≡
       ...               | no ¬q = no λ {refl → ¬q refl}
       ...               | yes refl = yes refl
 DecList DS .proj₂ = refl
+
+
+----------------
+-- Exercise 6 --
+----------------
+
+{-
+   In various algorithms we will wish to keep track of already processed values,
+   but would rather not keep duplicates in a list. We can do this with a
+   modified `cons` operation, that will check for duplicates.
+-}
+
+module NoDupList where
+  add : ⦃ DS : DecType ⦄ → List (carr DS) → carr DS → List (carr DS)
+  add [] x' = x' ∷ []
+  add ⦃ DS ⦄ (x ∷ xs) x' with (test-≡ DS) x x'
+  ...                       | yes refl = x ∷ xs
+  ...                       | no  p    = x ∷ add xs x'
+
+  {-
+     Below we are going to make this intuitive correctness property of `add`
+     formal by proving it in Agda.
+  -}
+
+  {-
+     When thinking about how to specify that a given list has no duplicate
+     elements, one likely first comes up with the `NoDup'` predicate below.
+  -}
+
+  safe-lookup : {A : Set} → (xs : List A) → Fin (length xs) → A
+  safe-lookup (x ∷ xs) zero    = x
+  safe-lookup (x ∷ xs) (suc n) = safe-lookup xs n
+
+  NoDup' : {A : Set} → List A → Set
+  NoDup' xs = (i j : Fin (length xs)) → i ≢ j → safe-lookup xs i ≢ safe-lookup xs j
+
+  {-
+     While this is a mathematically and logically natural statement (any distinct
+     pair of indices holds distinct values), it is not the best definition for
+     proving theorems about it in type theory. Instead of characterising a
+     negative statement (e.g., no duplicates) using a combination of function
+     types/implications and negations, it is generally better if negative
+     statements are also defined more "structurally"---as inductively defined
+     predicates that then follow the structure of the type they are defined over
+     (e.g., `List A`).
+
+     (You can of course also try to prove `add-nodup` using `NoDup'`.)
+
+     (As a bonus exercise, you can also try to separately prove that the `NoDup`
+     and `NoDup'` predicates are logically equivalent.)
+  -}
+
+  {-
+     So, instead, give below an inductive definition to the `NoDup` predicate.
+
+     Hint: You might find the `∈` relation on lists defined below useful.
+  -}
+
+  infix 3 _∈_
+
+  data _∈_ {A : Set} : A → List A → Set where
+    ∈-here  : {x : A} → {xs : List A} → x ∈ (x ∷ xs)
+    ∈-there : {x y : A} {xs : List A} → x ∈ xs → x ∈ (y ∷ xs)
+
+  data NoDup {A : Set} : List A → Set where
+    []-nodup : NoDup []
+    ∷-nodup : {x : A} {xs : List A} → NoDup xs → ¬ (x ∈ xs) → NoDup (x ∷ xs)
+
+  {-
+     Next, prove some sanity-checks about the correctness of `NoDup`.
+  -}
+
+  nodup-test₁ : NoDup {ℕ} []
+  nodup-test₁ = []-nodup
+
+  nodup-test₂ : NoDup (4 ∷ 2 ∷ [])
+  nodup-test₂ = ∷-nodup (∷-nodup []-nodup (λ ())) (λ {(∈-there ())})
+
+  nodup-test₃ : ¬ (NoDup (4 ∷ 2 ∷ 4 ∷ []))
+  nodup-test₃ = λ { (∷-nodup x x₁) → {!!}}
+
+  {-
+     Finally, prove that `add` preserves the no-duplicates property.
+
+     Hint: You might find it useful to prove an auxiliary lemma, showing that
+     under certain conditions, if `x` is in `add xs x'`, then `x` was actually
+     already present in `xs` (When would this be the case?).
+  -}
+
+  add-nodup : ⦃ DS : DecType ⦄ → (xs : List (carr DS)) → (y : carr DS)
+            → NoDup xs
+            → NoDup (add xs y)
+  add-nodup xs y p = {!!}
+
+
+----------------
+-- Exercise 7 --
+----------------
+
+{-
+   We have memberhood, but now we wish to also make assignments.
+-}
+
+module AssocList (K : DecType) (V : Set) where
+
+  AssocList : Set
+  AssocList = List (carr K × V)
+
+  _∈_ : carr K → AssocList → Set
+  k ∈ kvs = k NoDupList.∈ (map proj₁ kvs)
+
+  lookup : {k : carr K} {kvs : AssocList} → k ∈ kvs → V
+  lookup {kvs = []} ()
+  lookup {kvs = (_ , v) ∷ _}    NoDupList.∈-here     = v
+  lookup {kvs = (k , v) ∷ kvs} (NoDupList.∈-there p) = lookup p
+
+  _∈?_ : (k : carr K) → (kvs : AssocList) → Dec (k ∈ kvs)
+  k ∈? [] = no λ ()
+  k ∈? ((k' , _) ∷ kvs) with K .test-≡ k k'
+  ... | yes refl = yes NoDupList.∈-here
+  ... | no p with k ∈? kvs
+  ...           | yes q = yes (NoDupList.∈-there q)
+  ...           | no q = no (λ { NoDupList.∈-here → p refl ; (NoDupList.∈-there r) → q r})
+
+  _‼_ : (kvs : AssocList) → (k : carr K) → Maybe V
+  kvs ‼ k with k ∈? kvs
+  ... | yes p = just (lookup p)
+  ... | no  _ = nothing
+
+  _[_]≔_ : AssocList → carr K → V → AssocList
+  kvs [ k ]≔ v with k ∈? kvs
+  ... | yes _ = kvs
+  ... | no  _ = (k , v) ∷ kvs
+
+
+{-
+   Lets define a common interface we will use for the project.
+-}
+
+module Assoc (K : DecType) (V : Set) where
+
+  Assoc : Set
+  Assoc = {!!}
+
+  _∈_ : carr K → Assoc → Set
+  k ∈ kvs = {!!}
+
+  lookup : {k : carr K} {kvs : Assoc} → k ∈ kvs → V
+  lookup p = {!!}
+
+  _∈?_ : (k : carr K) → (kvs : Assoc) → Dec (k ∈ kvs)
+  k ∈? kvs = {!!}
+
+  _‼_ : (kvs : Assoc) → (k : carr K) → Maybe V
+  kvs ‼ k = {!!}
+
+  _[_]≔_ : Assoc → carr K → V → Assoc
+  kvs [ k ]≔ v = {!!}
+
+
+𝒩 : DecType
+𝒩 .carr = ℕ
+𝒩 .test-≡ zero zero = yes refl
+𝒩 .test-≡ zero (suc n) = no λ ()
+𝒩 .test-≡ (suc m) zero = no λ ()
+𝒩 .test-≡ (suc m) (suc n) with 𝒩 .test-≡ m n
+... | yes refl = yes refl
+... | no m≢n = no (λ {refl → m≢n refl})
+
+open import Data.Bool using (Bool; true; false; not; _xor_; if_then_else_; _∧_)
+open import Data.Bool.ListAction using (and; or)
+open Assoc 𝒩 Bool
+
+Assignment = Assoc
+Literal = ℕ × Bool
+Disjunct = List Literal
+Conjunct = List Disjunct
+
+eval : Conjunct → Assignment → Maybe Bool
+eval φ assn = {!!}
+
+-------------------------------------------------------------------
+-- Bonus exercise on logical equivalence of `NoDup` and `NoDup'` --
+-------------------------------------------------------------------
+
+module _ where
+  {-
+     `NoDup` implies `NoDup'`
+  -}
+
+  open NoDupList
+  nodup-nodup' : {A : Set} → (xs : List A) → NoDup xs → NoDup' xs
+  nodup-nodup' = {!!}
+
+  {-
+     `NoDup'` implies `NoDup`
+  -}
+
+  nodup'-nodup : {A : Set} → (xs : List A) → NoDup' xs → NoDup xs
+  nodup'-nodup = {!!}

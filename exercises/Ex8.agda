@@ -1,4 +1,4 @@
-{-# OPTIONS --prop --rewriting #-}
+{-# OPTIONS --prop #-}
 ---------------------------------------------------------------------------
 -- Week 8 exercises for the Logika v računalništvu course at UL FMF      --
 -- Lecturer: Alex Simpson                                                --
@@ -15,10 +15,9 @@ module Ex8 where
 open import Data.Empty           using (⊥; ⊥-elim)
 open import Data.Fin             using (Fin; zero; suc)
 open import Data.List            using (List; []; _∷_; _++_; length; map)
-open import Data.List.Properties using (map-id; map-compose)
+open import Data.List.Properties using (map-id; map-∘)
 open import Data.Maybe           using (Maybe; nothing; just)
 --open import Data.Nat             using (ℕ; zero; suc; _+_; _≤_; z≤n; s≤s; _<_)
-open import Data.Nat             using (ℕ; zero; suc; _+_)
 open import Data.Nat.Properties  using (+-identityˡ; +-identityʳ; +-suc; +-comm)
 open import Data.Product         using (Σ; _,_; proj₁; proj₂; Σ-syntax; _×_)
 open import Data.Sum             using (_⊎_; inj₁; inj₂)
@@ -33,6 +32,13 @@ open Eq                          using (_≡_; refl; sym; trans; cong; subst; _�
 
 open import Axiom.Extensionality.Propositional using (Extensionality)
 postulate fun-ext : ∀ {a b} → Extensionality a b
+
+{-
+   `Prop`-based inequalities. You can instead use the standard library
+   inequalities, by deleting the code below and uncommenting the `import
+   Data.Nat` above. You might need to change some code below though.
+-}
+open import Data.Nat             using (ℕ; zero; suc; _+_)
 
 data ⊥ᵖ : Prop where
 
@@ -54,6 +60,7 @@ n > m = m < n
 
 infix 4 _<_
 infix 4 _>_
+
 
 ----------------
 -- Exercise 1 --
@@ -129,9 +136,6 @@ list-ext {xs = x ∷ xs} {y ∷ ys} h g =
 -}
 
 
-
-
-
 ----------------
 -- Exercise 2 --
 ----------------
@@ -184,7 +188,6 @@ open _≃_
         → Σ[ x ∈ A ] (Σ[ y ∈ B x ] (C x y))
           ≃
           Σ[ xy ∈ Σ[ x ∈ A ] (B x) ] (C (proj₁ xy) (proj₂ xy))
-
 Σ-assoc = {!!}
 
 {-
@@ -196,9 +199,7 @@ open _≃_
         → Σ[ x ∈ A ] (Σ[ y ∈ B x ] (C x y))
           ≃
           Σ[ xy ∈ Σ[ x ∈ A ] (B x) ] (C (proj₁ xy) (proj₂ xy))
-
 Σ-assoc' = {!!}
-
 
 
 ----------------
@@ -217,8 +218,6 @@ open _≃_
 ≃-List = {!!}
 
 
-
-
 ----------------
 -- Exercise 5 --
 ----------------
@@ -230,33 +229,59 @@ open _≃_
    elements.
 -}
 
+{-
+   The type `Dec A` says "we either have a term of type `A` or we have a proof
+   that `A` is empty".
+-}
+
 data Dec (A : Set) : Set where
-  yes : A → Dec A
+  yes :    A  → Dec A
   no  : (¬ A) → Dec A
 
-record DecSet : Set₁ where
-  field
-    DSet   : Set
-    test-≡ : (x y : DSet) → Dec (x ≡ y)
+{-
+   Here `Set₁` has something to do with universe levels, which we likely will
+   not cover in this course. You can think of it as "the type of classes", but
+   it is safe to ignore.
+-}
 
-open DecSet
+record DecType : Set₁ where
+  field
+    carr   : Set
+    test-≡ : (x y : carr) → Dec (x ≡ y)
+
+{-
+   The type `DecType` is the type of "decidable types". It is a record type and
+   it's elements have two fields; `carr` is the underlying type and `test-≡` is
+   the "decidability predicate", deciding the equality between any two elements.
+
+   In general not every type is decidable. Consider the type of infinite
+   non-descending sequences of booleans. Then you can not write a program that
+   decides whether a sequence is all zeroes, or if at some point it switches to
+   a one. Consider what such a program will do. I can keep giving you zeroes as
+   values of the sequence until at some finite time the program decides that the
+   sequence either is or is not all zeroes. In either case from that point on I
+   can decide that the sequence I had in mind is _not_ the sequence the program
+   guessed. Since programs are deterministic and terminating, I can always
+   construct a sequence, for which the program decides incorrectly. Thus, the
+   type of infinite non-descending sequences of booleans is not decidable.
+-}
+
+open DecType
 
 {-
    Given a type with decidable equality, prove that a list holding
    elements of this type is itself a type with decidable equality.
 -}
 
-DecList : (DS : DecSet) → Σ[ DS' ∈ DecSet ] (DSet DS' ≡ List (DSet DS))
-DecList DS .proj₁ = record { DSet = DecList-DSet ; test-≡ = DecList-test-≡ }
+DecList : (DS : DecType) → Σ[ DS' ∈ DecType ] (carr DS' ≡ List (carr DS))
+DecList DS .proj₁ = record { carr = DecList-carr ; test-≡ = DecList-test-≡ }
    where
-      DecList-DSet : Set
-      DecList-DSet = List (DSet DS)
+      DecList-carr : Set
+      DecList-carr = {!!}
 
-      DecList-test-≡ : (xs ys : List (DSet DS)) → Dec (xs ≡ ys)
+      DecList-test-≡ : (xs ys : List (carr DS)) → Dec (xs ≡ ys)
       DecList-test-≡ = {!!}
-DecList DS .proj₂ = refl
-
-
+DecList DS .proj₂ = {!!}
 
 
 ----------------
@@ -268,12 +293,13 @@ DecList DS .proj₂ = refl
    but would rather not keep duplicates in a list. We can do this with a
    modified `cons` operation, that will check for duplicates.
 -}
+
 module NoDupList where
-  add : {DS : DecSet} → List (DSet DS) → DSet DS → List (DSet DS)
+  add : ⦃ DS : DecType ⦄ → List (carr DS) → carr DS → List (carr DS)
   add [] x' = x' ∷ []
-  add {DS} (x ∷ xs) x' with (test-≡ DS) x x'
-  ... | yes refl = x' ∷ xs
-  ... | no  p    = x ∷ add {DS} xs x'
+  add ⦃ DS ⦄ (x ∷ xs) x' with (test-≡ DS) x x'
+  ...                       | yes refl = x ∷ xs
+  ...                       | no  p    = x ∷ add xs x'
 
   {-
      Below we are going to make this intuitive correctness property of `add`
@@ -344,10 +370,10 @@ module NoDupList where
      already present in `xs` (When would this be the case?).
   -}
 
-  add-nodup : {DS : DecSet} → (xs : List (DSet DS)) → (x : DSet DS)
-            → NoDup {DSet DS} xs
-            → NoDup {DSet DS} (add {DS} xs x)
-  add-nodup xs x' p = {!!}
+  add-nodup : ⦃ DS : DecType ⦄ → (xs : List (carr DS)) → (y : carr DS)
+            → NoDup xs
+            → NoDup (add xs y)
+  add-nodup xs y p = {!!}
 
 
 ----------------
@@ -358,20 +384,20 @@ module NoDupList where
    We have memberhood, but now we wish to also make assignments.
 -}
 
-module AssocList (K : DecSet) (V : Set) where
+module AssocList (K : DecType) (V : Set) where
 
   AssocList : Set
-  AssocList = List (DSet K × V)
+  AssocList = List (carr K × V)
 
-  _∈_ : DSet K → AssocList → Set
+  _∈_ : carr K → AssocList → Set
   k ∈ kvs = k NoDupList.∈ (map proj₁ kvs)
 
-  lookup : {k : DSet K} {kvs : AssocList} → k ∈ kvs → V
+  lookup : {k : carr K} {kvs : AssocList} → k ∈ kvs → V
   lookup {kvs = []} ()
   lookup {kvs = (_ , v) ∷ _}    NoDupList.∈-here     = v
   lookup {kvs = (k , v) ∷ kvs} (NoDupList.∈-there p) = lookup p
 
-  _∈?_ : (k : DSet K) → (kvs : AssocList) → Dec (k ∈ kvs)
+  _∈?_ : (k : carr K) → (kvs : AssocList) → Dec (k ∈ kvs)
   k ∈? [] = no λ ()
   k ∈? ((k' , _) ∷ kvs) with K .test-≡ k k'
   ... | yes refl = yes NoDupList.∈-here
@@ -379,46 +405,44 @@ module AssocList (K : DecSet) (V : Set) where
   ...           | yes q = yes (NoDupList.∈-there q)
   ...           | no q = no (λ { NoDupList.∈-here → p refl ; (NoDupList.∈-there r) → q r})
 
-  _‼_ : (kvs : AssocList) → (k : DSet K) → Maybe V
+  _‼_ : (kvs : AssocList) → (k : carr K) → Maybe V
   kvs ‼ k with k ∈? kvs
   ... | yes p = just (lookup p)
   ... | no  _ = nothing
 
-  _[_]≔_ : AssocList → DSet K → V → AssocList
+  _[_]≔_ : AssocList → carr K → V → AssocList
   kvs [ k ]≔ v with k ∈? kvs
   ... | yes _ = kvs
   ... | no  _ = (k , v) ∷ kvs
-
-
 
 
 {-
    Lets define a common interface we will use for the project.
 -}
 
-module Assoc (K : DecSet) (V : Set) where
+module Assoc (K : DecType) (V : Set) where
 
   Assoc : Set
   Assoc = {!!}
 
-  _∈_ : DSet K → Assoc → Set
+  _∈_ : carr K → Assoc → Set
   k ∈ kvs = {!!}
 
-  lookup : {k : DSet K} {kvs : Assoc} → k ∈ kvs → V
+  lookup : {k : carr K} {kvs : Assoc} → k ∈ kvs → V
   lookup p = {!!}
 
-  _∈?_ : (k : DSet K) → (kvs : Assoc) → Dec (k ∈ kvs)
+  _∈?_ : (k : carr K) → (kvs : Assoc) → Dec (k ∈ kvs)
   k ∈? kvs = {!!}
 
-  _‼_ : (kvs : Assoc) → (k : DSet K) → Maybe V
+  _‼_ : (kvs : Assoc) → (k : carr K) → Maybe V
   kvs ‼ k = {!!}
 
-  _[_]≔_ : Assoc → DSet K → V → Assoc
+  _[_]≔_ : Assoc → carr K → V → Assoc
   kvs [ k ]≔ v = {!!}
 
 
-𝒩 : DecSet
-𝒩 .DSet = ℕ
+𝒩 : DecType
+𝒩 .carr = ℕ
 𝒩 .test-≡ zero zero = yes refl
 𝒩 .test-≡ zero (suc n) = no λ ()
 𝒩 .test-≡ (suc m) zero = no λ ()
