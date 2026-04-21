@@ -11,7 +11,7 @@
 -- Course website: https://ucilnica.fmf.uni-lj.si/course/view.php?id=252 --
 ---------------------------------------------------------------------------
 
-module Ex7-stdlib where
+module Sol7 where
 
 open import Data.Nat using (ℕ; zero; suc; _+_; _*_)
 open import Data.List using (List; []; _∷_; length; map)
@@ -22,6 +22,72 @@ import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; sym; trans; cong; subst; _≢_)
 open import Relation.Nullary using (¬_)
 
+
+-- data ℕ : Set where
+--   zero : ℕ
+--   suc  : ℕ → ℕ
+
+-- infixl 6  _+_
+-- infixl 7  _*_
+
+-- _+_ : ℕ → ℕ → ℕ
+-- zero    + n = n
+-- (suc m) + n = suc (m + n)
+
+-- _*_ : ℕ → ℕ → ℕ
+-- zero * n = zero
+-- suc m * n = n + m * n
+
+-- {-# BUILTIN NATURAL ℕ #-}
+-- {-# BUILTIN NATPLUS _+_ #-}
+-- {-# BUILTIN NATTIMES _*_ #-}
+
+-- infixr 5 _∷_
+
+-- data List (A : Set) : Set where
+--   []  : List A
+--   _∷_ : A → List A → List A
+
+-- {-# BUILTIN LIST List #-}
+
+-- length : {A : Set} → List A → ℕ
+-- length [] = zero
+-- length (x ∷ xs) = suc (length xs)
+-- map : {A B : Set} → (A → B) → List A → List B
+-- map f [] = []
+-- map f (x ∷ xs) = f x ∷ map f xs
+
+-- data Vec (A : Set) : ℕ → Set where
+--   []  : Vec A 0
+--   _∷_ : {n : ℕ} → A → Vec A n → Vec A (suc n)
+
+-- infix 4 _≡_
+
+-- data _≡_ {A : Set} (x : A) : A → Set where
+--   refl : x ≡ x
+
+-- symm : {A : Set} {x y : A} → x ≡ y → y ≡ x
+-- symm refl = refl
+
+-- trans : {A : Set} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
+-- trans refl q = q
+
+-- cong : {A B : Set} (f : A → B) → {x y : A} → x ≡ y → f x ≡ f y
+-- cong f refl = refl
+
+-- subst : {A : Set} {B : A → Set} {x y : A} → x ≡ y → B x → B y
+-- subst refl a = a
+
+-- data ⊥ : Set where
+
+-- infix 3 ¬_
+-- ¬_ : Set → Set
+-- ¬ P = P → ⊥
+
+-- infix 4 _≢_
+-- _≢_ : {A : Set} → A → A → Set
+-- x ≢ y = ¬ x ≡ y
+
 {-
    We also postulate the principle of function extensionality so
    that you can use it if and when needed in the exercises below.
@@ -31,6 +97,8 @@ postulate
   fun-ext : {A : Set} {B : A → Set} {f g : (x : A) → B x}
           → ((x : A) → f x ≡ g x)
           → f ≡ g
+
+
 
 
 -------------------------------
@@ -50,16 +118,18 @@ postulate
 -}
 
 +-identityʳ : (n : ℕ) → n + zero ≡ n
-+-identityʳ n = {!!}
++-identityʳ zero = refl
++-identityʳ (suc n) = cong suc (+-identityʳ n)
 
 +-identityˡ : (n : ℕ) → zero + n ≡ n
-+-identityˡ n = {!!}
++-identityˡ n = refl
 
 +-suc : (m n : ℕ) → m + (suc n) ≡ suc (m + n)
-+-suc m n = {!!}
++-suc zero n = refl
++-suc (suc m) n = cong suc (+-suc m n)
 
 suc-inj : {m n : ℕ} → suc m ≡ suc n → m ≡ n
-suc-inj p = {!!}
+suc-inj refl = refl
 
 
 ----------------
@@ -80,11 +150,14 @@ data Maybe (A : Set) : Set where
   nothing : Maybe A
 
 lookup : {A : Set} {n : ℕ} → Vec A n → ℕ → Maybe A
-lookup xs i = {!!}
+--lookup xs i = {!!}
+lookup [] i = nothing
+lookup (x ∷ xs) zero = just x
+lookup (x ∷ xs) (suc i) = lookup xs i
 
 
 ----------------
--- Exercise 2 --
+-- Exercise 7 --
 ----------------
 
 {-
@@ -174,14 +247,16 @@ open WithPropButWithSetEliminationAsWell
 open WithSet using () renaming (_≤_ to _≤ˢ_; z≤n to z≤ˢn; s≤s to s≤ˢs)
 
 ≤-to-≤ˢ : (m n : ℕ) → m ≤ n → m ≤ˢ n
-≤-to-≤ˢ = {!!}
+≤-to-≤ˢ zero _ _ = z≤ˢn
+≤-to-≤ˢ (suc m) (suc n) p = s≤ˢs (≤-to-≤ˢ m n p)
 
 ≤ˢ-to-≤ : (m n : ℕ) → m ≤ˢ n → m ≤ n
-≤ˢ-to-≤ = {!!}
+≤ˢ-to-≤ m n z≤ˢn = tt
+≤ˢ-to-≤ m n (s≤ˢs p) = ≤ˢ-to-≤ _ _ p
 
 
 ----------------
--- Exercise 3 --
+-- Exercise 7 --
 ----------------
 
 {-
@@ -189,34 +264,46 @@ open WithSet using () renaming (_≤_ to _≤ˢ_; z≤n to z≤ˢn; s≤s to s�
 -}
 
 reflexive : (n : ℕ) → n ≤ n
-reflexive = {!!}
+reflexive zero = tt
+reflexive (suc n) = reflexive n
 
 transitive : (m n k : ℕ) → m ≤ n → n ≤ k → m ≤ k
-transitive = {!!}
+transitive zero n k p q = tt
+transitive (suc m) (suc n) (suc k) p q = transitive m n k p q
 
 
 anti-symmetric : (m n : ℕ) → m ≤ n → n ≤ m → m ≡ n
-anti-symmetric = {!!}
+anti-symmetric zero zero p q = refl
+anti-symmetric (suc m) (suc n) p q = cong suc (anti-symmetric m n p q)
+
 
 
 ----------------
--- Exercise 4 --
+-- Exercise = --
 ----------------
 
 {-
-   Show that `≤ˢ` is also anti-symmetric.
+   Recall the "is even" predicate for unary numbers.
 -}
 
-anti-symmetricˢ : (m n : ℕ) → m ≤ˢ n → n ≤ˢ m → m ≡ n
-anti-symmetricˢ = {!!}
+data Even : ℕ → Set where
+  even-z : Even zero
+  even-ss : {n : ℕ} → Even n → Even (suc (suc n))
 
 
-----------------
--- Exercise 5 --
-----------------
+is-even : ℕ → Prop
+is-even zero = ⊤ᵖ
+is-even (suc zero) = ⊥ᵖ
+is-even (suc (suc n)) = is-even n
+
+
+
+-----------------
+-- Exercise 12 --
+-----------------
 
 {-
-   Consider a strict comparison relation on the naturals.
+   consider a strict comparison relation on the naturals.
 -}
 
 _<_ : ℕ → ℕ → Prop
@@ -236,6 +323,8 @@ infix 4 _>_
 
 
 open import Data.Unit
+--data ⊤ : Set where
+--  tt : ⊤
 
 lookup-totalᵀ : {n : ℕ}
               → (xs : Vec ⊤ n)
@@ -246,7 +335,7 @@ lookup-totalᵀ xs i p = {!!}
 
 
 ----------------
--- Exercise 6 --
+-- Exercise 3 --
 ----------------
 
 {-
@@ -275,13 +364,9 @@ data Fin : ℕ → Set where
 safe-lookup : {A : Set} {n : ℕ} → Vec A n → Fin n → A
 safe-lookup xs i = {!!}
 
-{-
-   Think about how to define a safe lookup function for lists.
--}
-
 
 ----------------
--- Exercise 7 --
+-- Exercise 4 --
 ----------------
 
 {-
@@ -306,7 +391,7 @@ lookup-correct x i p = {!!}
 
 
 ----------------
--- Exercise 8 --
+-- Exercise 7 --
 ----------------
 
 {-
@@ -331,6 +416,7 @@ to-list-length : {A : Set} {n : ℕ}
 to-list-length xs = {!!}
 
 
+
 -------------------------------------
 -------------------------------------
 -- MORE INVOLVED EXERCISES [START] --
@@ -339,8 +425,9 @@ to-list-length xs = {!!}
 
 open import Function using (id; _∘_)
 
+
 -----------------
--- Exercise 9 --
+-- Exercise 10 --
 -----------------
 
 {-
@@ -353,8 +440,10 @@ list-vec-list : {A : Set}
 list-vec-list = {!!}
 
 
+
+
 -----------------
--- Exercise 10 --
+-- Exercise 12 --
 -----------------
 
 {-
@@ -375,18 +464,19 @@ data _</≡/>_ (m n : ℕ) : Set where
    PLFA (https://plfa.inf.ed.ac.uk/Decidable/) for more details.
 -}
 
-test-</≡/> : (m n : ℕ) → n </≡/> m
+test-</≡/> : (m n : ℕ) → m </≡/> n
 test-</≡/> m n = {!!}
 
 
 -----------------
--- Exercise 11 --
+-- Exercise 13 --
 -----------------
 
 {-
-   Below is the inductive type `Tree A` of node-labelled binary trees holding data of type `A` in
-   their nodes. Such a tree is either an `empty` tree (holding no data); or a root node built from a
-   left subtree `t`, data `n`, and a right subtree `u`, written `node t n u`.
+   Below is the inductive type `Tree A` of node-labelled binary trees
+   holding data of type `A` in their nodes. Such a tree is either an
+   `empty` tree (holding no data); or a root node built from a left
+   subtree `t`, data `n`, and a right subtree `u`, written `node t n u`.
 
    For example, the binary tree
 
@@ -428,11 +518,15 @@ data Tree (A : Set) : Set where
 -}
 
 insert : Tree ℕ → ℕ → Tree ℕ
-insert = {!!}
+insert empty n = node empty n empty
+insert (node t m u) n with test-</≡/> m n
+... | m<n p = node (insert t n) m u
+... | m≡n p = node t m u
+... | m>n p = node t m (insert u n)
 
 {-
-   As a sanity check, prove that inserting 12, 27, and 52 into the above example tree correctly
-   returns the expected trees.
+   As a sanity check, prove that inserting 12, 27, and 52 into the above
+   example tree correctly returns the expected trees.
 -}
 
 insert-12 : insert (node (node empty 22 (node empty 32 empty)) 42 (node empty 52 empty)) 12
@@ -452,15 +546,15 @@ insert-52 = {!!}
 
 
 -----------------
--- Exercise 12 --
+-- Exercise 14 --
 -----------------
 
 {-
-   Define an inductive relation `∈` that specifies that a given natural number exists in the given
-   tree.
+   Define an inductive relation `∈` that specifies that a given natural
+   number exists in the given tree.
 
-   Hint: This relation should specify a path in a given tree from its root to the desired natural
-   number whose existence we are specifying.
+   Hint: This relation should specify a path in a given tree from its
+   root to the desired natural number whose existence we are specifying.
 -}
 
 data _∈_ (n : ℕ) : Tree ℕ → Set where
@@ -468,17 +562,19 @@ data _∈_ (n : ℕ) : Tree ℕ → Set where
 
 
 {-
-   Prove that the tree returned by the `insert` function indeed contains the inserted natural
-   number.
+   Prove that the tree returned by the `insert` function indeed
+   contains the inserted natural number.
 
-   Hint: If you used Agda's `with` abstraction for pattern-matching in the definition of `insert`,
-   you will need to perform similar amount of pattern-matching also in this proof to make the type
-   of the hole compute. You can tell when this is needed because the type of the hole will involve
-   an expression of the form `f v | g w`, meaning that in order for `f v` to be computed and
-   normalised further, you need to first pattern-match on the value of `g v` (using `with`).
+   Hint: If you used Agda's `with` abstraction for pattern-matching in
+   the definition of `insert`, you will need to perform similar amount
+   of pattern-matching also in this proof to make the type of the hole
+   compute. You can tell when this is needed because the type of the
+   hole will involve an expression of the form `f v | g w`, meaning
+   that in order for `f v` to be computed and normalised further, you
+   need to first pattern-match on the value of `g v` (using `with`).
 
-   If you haven't spotted this already, then it is part of a general pattern---proofs often follow
-   the same structure as the definitions.
+   If you haven't spotted this already, then it is part of a general
+   pattern---proofs often follow the same structure as the definitions.
 -}
 
 insert-∈ : (t : Tree ℕ) → (n : ℕ) → n ∈ (insert t n)
@@ -492,21 +588,25 @@ insert-∈ t n = {!!}
 -------------------------------------
 
 -----------------
--- Exercise 13 --
+-- Exercise 15 --
 -----------------
 
 {-
-   While above you were asked to define the `insert` function following the insertion strategy for
-   binary search trees, then concretely the function is still working on arbitrary binary trees.
-   Here we will define an inductive predicate to classify binary trees that are indeed binary search
-   trees and prove that the `insert` function preserves this predicate.
+   While above you were asked to define the `insert` function
+   following the insertion strategy for binary search trees, then
+   concretely the function is still working on arbitrary binary
+   trees. Here we will define an inductive predicate to classify
+   binary trees that are indeed binary search trees and prove that
+   the `insert` function preserves this predicate.
 -}
 
 {-
-   Before we define the binary search tree predicate, we extend the type of natural numbers with
-   bottom and top elements, written `-∞` and `+∞` (for symmetry and their analogy with negative and
-   positive infinities; also, `⊥` and `⊤` are already used in Agda for the empty and unit type). We
-   then also extend the order `<` to take these new bottom and top elements into account.
+   Before we define the binary search tree predicate, we extend
+   the type of natural numbers with bottom and top elements,
+   written `-∞` and `+∞` (for symmetry and their analogy with
+   negative and positive infinities; also, `⊥` and `⊤` are already
+   used in Agda for the empty and unit type). We then also extend the
+   order `<` to take these new bottom and top elements into account.
 -}
 
 data ℕ∞ : Set where
@@ -515,27 +615,31 @@ data ℕ∞ : Set where
   +∞  :     ℕ∞
 
 _<∞_ : ℕ∞ → ℕ∞ → Prop
--∞ <∞ n = ⊤ᵖ
+-∞ <∞ -∞ = ⊥ᵖ
+-∞ <∞ [ x ] = ⊤ᵖ
+-∞ <∞ +∞ = ⊤ᵖ
 [ m ] <∞ -∞ = ⊥ᵖ
 [ m ] <∞ [ n ] = m < n
 [ m ] <∞ +∞ = ⊤ᵖ
 +∞ <∞ n = ⊥ᵖ
 
 {-
-   Using this extended definition of natural numbers, we next define an inductive predicate `IsBST`
-   on binary trees that specifies when a given binary tree holding natural numbers is in fact a
-   binary search tree (https://en.wikipedia.org/wiki/Binary_search_tree).
+   Using this extended definition of natural numbers, we next define
+   an inductive predicate `IsBST` on binary trees that specifies when
+   a given binary tree holding natural numbers is in fact a binary
+   search tree (https://en.wikipedia.org/wiki/Binary_search_tree).
 
    Note that, concretely, the `IsBST` predicate consists of two definitions:
-   - the `IsBST` predicate, which is the "top-level" predicate specifying that a given binary tree
-     is in a binary search tree format; and
-   - the recursively defined relation `IsBST-rec`, which does most of the work in imposing the
-     binary search tree invariant on the given tree.
+   - the `IsBST` predicate, which is the "top-level" predicate specifying
+     that a given binary tree is in a binary search tree format; and
+   - the recursively defined relation `IsBST-rec`, which does most of the
+     work in imposing the binary search tree invariant on the given tree.
 
-   The `IsBST-rec` relation carries two additional `ℕ∞`-arguments that specify the range of values a
-   given binary search tree is allowed to hold, in particular, which values the left and right
-   subtrees of a `node t n u` tree node are allowed to store. Further, note that the `empty` case
-   holds a proof that `lower` is indeed less than `upper`.
+   The `IsBST-rec` relation carries two additional `ℕ∞`-arguments that
+   specify the range of values a given binary search tree is allowed
+   to hold, in particular, which values the left and right subtrees of
+   a `node t n u` tree node are allowed to store. Further, note that the
+   `empty` case holds a proof that `lower` is indeed less than `upper`.
 -}
 
 data IsBST-rec (lower upper : ℕ∞) : Tree ℕ → Set where
@@ -553,86 +657,95 @@ data IsBST : Tree ℕ → Set where
             → IsBST (node t n u)
 
 {-
-   Prove that having the `{p : lower <∞ upper}` proof witness in the `empty` cases of the
-   `IsBST-rec` relation indeed forces the `<∞` relation to hold for the bound indices of `IsBST-rec`
-   in general.
+   Prove that having the `(p : lower <∞ upper)` proof witness in the
+   `empty` cases of the `IsBST-rec` relation indeed forces the `<∞`
+   relation to hold for the bound indices of `IsBST-rec` in general.
 
    Hint: You might find it helpful to prove the transitivity of `<∞`.
 -}
 
+trans-< : (m n l : ℕ) → m < n → n < l → m < l
+trans-< zero (suc _) (suc _) _ _ = tt
+trans-< (suc m) (suc _) (suc l) p q = trans-< m _ l p q
+trans-<∞ : (m n l : ℕ∞) → m <∞ n → n <∞ l → m <∞ l
+trans-<∞ -∞ [ _ ] [ _ ] _ _ = tt
+trans-<∞ -∞ [ _ ] +∞ _ _ = tt
+trans-<∞ [ m ] [ n ] [ l ] p q = trans-< m n l p q
+trans-<∞ [ _ ] [ _ ] +∞ _ _ = tt
+
 isbst-rec-<∞ : {lower upper : ℕ∞} {t : Tree ℕ}
              → IsBST-rec lower upper t
              → lower <∞ upper
-isbst-rec-<∞ = {!!}
-
-bst : IsBST (node (node empty 2 (node empty 3 empty)) 5 (node empty 6 empty))
-bst = node-bst
-        (node-bst
-           empty-bst
-           (node-bst
-              empty-bst
-              empty-bst))
-        (node-bst
-           empty-bst
-           empty-bst)
-
-
------------------
--- Exercise 14 --
------------------
+isbst-rec-<∞ (empty-bst {p}) = p
+isbst-rec-<∞ {lower} {upper} (node-bst p q) = trans-<∞ lower _ upper (isbst-rec-<∞ p) (isbst-rec-<∞ q)
 
 {-
-   We could define all the above with `Prop`, however this turns out to behave worse. You can try
-   it out by defining `isbst-recᵖ-<∞` for the version below.
-
+   Disclaimer: The `(p : lower <∞ upper)` proof witness in the `empty`
+   case of the `IsBST-rec` relation means that every proof about a
+   given tree being a binary search tree needs one to construct such
+   proofs explicitly for all `empty` (sub)trees. For example, see below:
 -}
-
-record Σᵖ (p : Prop) (q : p → Prop) : Prop where
-  constructor _,_
-  field
-    fst : p
-    snd : q fst
-
-infixl 6 _∧_
-_∧_ : Prop → Prop → Prop
-p ∧ q = Σᵖ p λ _ → q
-
-IsBST-recᵖ : (lower upper : ℕ∞) → Tree ℕ → Prop
-IsBST-recᵖ lower upper empty = lower <∞ upper
-IsBST-recᵖ lower upper (node t n u) = IsBST-recᵖ lower [ n ] t ∧ IsBST-recᵖ [ n ] upper u
-
-IsBSTᵖ : Tree ℕ → Prop
-IsBSTᵖ empty = ⊤ᵖ
-IsBSTᵖ (node t n u) = IsBST-recᵖ -∞ [ n ] t ∧ IsBST-recᵖ [ n ] +∞ u
-
-isbst-recᵖ-<∞ : {lower upper : ℕ∞} {t : Tree ℕ}
-             → IsBST-recᵖ lower upper t
-             → lower <∞ upper
-isbst-recᵖ-<∞ = {!!}
 
 {-
    In fact, defining `<∞` as we did above also makes the definition of transitivity worse. Try
    defining it as a datatype in `Set` and compare the proofs of transitivity.
 -}
 
+--_<ˢ_ : (m n : ℕ) → Set
+--m <ˢ n = suc m ≤ˢ n
 
+data _<ˢ_ : ℕ → ℕ → Set where
+  z<ˢsn : {n : ℕ} → zero <ˢ suc n
+  s<ˢs  : {m n : ℕ} → m <ˢ n → suc m <ˢ suc n
+
+data _<ˢ∞_ : ℕ∞ → ℕ∞ → Set where
+  -∞<ˢn  : {n   : ℕ∞}  →           -∞   <ˢ∞   n
+  []<ˢ[] : {n m : ℕ}   → n <ˢ m → [ n ] <ˢ∞ [ m ]
+  n<ˢ+∞  : {n   : ℕ∞}  →            n   <ˢ∞  +∞
+
+trans-<ˢ : {n m k : ℕ} → n <ˢ m → m <ˢ k → n <ˢ k
+trans-<ˢ z<ˢsn (s<ˢs q) = z<ˢsn
+trans-<ˢ (s<ˢs p) (s<ˢs q) = s<ˢs (trans-<ˢ p q)
+
+trans-<ˢ∞ : {n m k : ℕ∞} → n <ˢ∞ m → m <ˢ∞ k → n <ˢ∞ k
+trans-<ˢ∞ -∞<ˢn _ = -∞<ˢn
+trans-<ˢ∞ ([]<ˢ[] p) ([]<ˢ[] q) = []<ˢ[] (trans-<ˢ p q)
+trans-<ˢ∞ ([]<ˢ[] p) n<ˢ+∞ = n<ˢ+∞
+trans-<ˢ∞ n<ˢ+∞ n<ˢ+∞ = n<ˢ+∞
 
 -----------------
--- Exercise 15 --
+-- Exercise 16 --
 -----------------
 
 {-
    Prove that being a binary search tree is invariant under `insert`.
 
-   Hint: As the `IsBST` predicate is defined in two steps, then you might find it useful to prove an
-   auxiliary lemma about `insert` preserving also the recursively defined `IsBST-rec` relation.
+   Hint: As the `IsBST` predicate is defined in two steps, then you
+   might find it useful to prove an auxiliary lemma about `insert`
+   preserving also the recursively defined `IsBST-rec` relation.
 -}
 
+
+insert-bst-rec : {lower upper : ℕ∞} (t : Tree ℕ) → (n : ℕ)
+               → (p : lower <∞ [ n ])
+               → (q : [ n ] <∞ upper)
+               → IsBST-rec lower upper t
+               → IsBST-rec lower upper (insert t n)
+insert-bst-rec t n p q empty-bst = node-bst (empty-bst {p = p}) (empty-bst {p = q})
+insert-bst-rec _ n p q (node-bst {t} {u} {m} r r') with test-</≡/> m n
+... | m<n x = node-bst (insert-bst-rec t n p {!!} r) r'
+... | m≡n x = node-bst r r'
+... | m>n x = node-bst r (insert-bst-rec u n {!!} q r')
+
 insert-bst : (t : Tree ℕ) → (n : ℕ) → IsBST t → IsBST (insert t n)
-insert-bst = {!!}
+insert-bst t n empty-bst = node-bst empty-bst empty-bst
+insert-bst _ n (node-bst {t} {u} {n = m} p q) with test-</≡/> m n
+... | m<n r = node-bst (insert-bst-rec t n tt {!!} p) q
+... | m≡n r = node-bst p q
+... | m>n r = node-bst p (insert-bst-rec u n {!!} tt q)
 
 -----------------
--- Exercise 16 --
+-- Exercise 17 --
 -----------------
 
 {-
@@ -657,4 +770,4 @@ insert-bst = {!!}
 
 vec-list-vec : {A : Set} {n : ℕ}
              → to-vec ∘ to-list ≡ {!!}
-vec-list-vec = {!!}
+vec-list-vec = refl

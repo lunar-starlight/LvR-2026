@@ -78,6 +78,15 @@ infix 4 _≢_
 _≢_ : {A : Set} → A → A → Set
 x ≢ y = ¬ x ≡ y
 
+id : {A : Set} → A → A
+id x = x
+
+_∘_ : ∀ {A : Set} {B : A → Set} {C : {x : A} → B x → Set} →
+      (∀ {x} (y : B x) → C y) → (g : (x : A) → B x) →
+      ((x : A) → C (g x))
+f ∘ g = λ x → f (g x)
+{-# INLINE _∘_ #-}
+
 {-
    We also postulate the principle of function extensionality so
    that you can use it if and when needed in the exercises below.
@@ -207,11 +216,6 @@ module WithPropButWithSetEliminationAsWell where
   suc m ≤ suc n = m ≤ n
 
   infix 4 _≤_
-
-  z≤n : {n : ℕ} → zero ≤ n
-  z≤n = tt
-  s≤s : {m n : ℕ} → m ≤ n → suc m ≤ suc n
-  s≤s = λ x → x
 
 module WithPropButWithSetEliminationAsWellInd where
   open WithPropButWithSetEliminationAsWell
@@ -398,6 +402,20 @@ to-list-length xs = {!!}
 -- MORE INVOLVED EXERCISES [START] --
 -------------------------------------
 -------------------------------------
+
+-----------------
+-- Exercise 9 --
+-----------------
+
+{-
+   Prove that `to-list` is the left inverse of `to-vec`. Observe that you have to prove equality
+   between functions.
+-}
+
+list-vec-list : {A : Set}
+              → (to-list ∘ to-vec) ≡ id {A = List A}
+list-vec-list = {!!}
+
 
 -----------------
 -- Exercise 10 --
@@ -676,3 +694,31 @@ isbst-recᵖ-<∞ = {!!}
 
 insert-bst : (t : Tree ℕ) → (n : ℕ) → IsBST t → IsBST (insert t n)
 insert-bst = {!!}
+
+-----------------
+-- Exercise 16 --
+-----------------
+
+{-
+   Prove that `list-vec` is the left inverse of `vec-list`. Observe that you have to prove equality
+   between functions.
+
+   Note that if we simply wrote `id` as the right-hand side of the equational property below we
+   would get a typing error about a mismatch in the natural number indices. Find a way to fix the
+   type of a given vector to use it in the right-hand side of the equation.
+
+   Hint 1: For a slightly unsatisfactory solution, think how you could convert a given vector to
+   another of a given type using recursion.
+
+   Hint 2: For a more complete solution, recall from the exercises how one change the type of a
+   given value (e.g., a vector) using a previously proved equality proof, and then combine this with
+   one of the equational lemmas we proved above.
+
+   WARNING: The hint 2 solution of this exercise is probably the most complex on this exercise
+   sheet, as it will require some careful thought when generalising the concrete statement you are
+   trying to prove, relating element-wise equality of vectors to the `≡` relation on vectors, etc.
+   So we suggest you leave this one for the very last. -}
+
+vec-list-vec : {A : Set} {n : ℕ}
+             → to-vec ∘ to-list ≡ {!!}
+vec-list-vec = {!!}
