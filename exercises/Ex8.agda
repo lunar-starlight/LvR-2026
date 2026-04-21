@@ -17,8 +17,6 @@ open import Data.Fin             using (Fin; zero; suc)
 open import Data.List            using (List; []; _∷_; _++_; length; map)
 open import Data.List.Properties using (map-id; map-∘)
 open import Data.Maybe           using (Maybe; nothing; just)
---open import Data.Nat             using (ℕ; zero; suc; _+_; _≤_; z≤n; s≤s; _<_)
-open import Data.Nat.Properties  using (+-identityˡ; +-identityʳ; +-suc; +-comm)
 open import Data.Product         using (Σ; _,_; proj₁; proj₂; Σ-syntax; _×_)
 open import Data.Sum             using (_⊎_; inj₁; inj₂)
 open import Data.Vec             using (Vec; []; _∷_)
@@ -32,6 +30,8 @@ open Eq                          using (_≡_; refl; sym; trans; cong; subst; _�
 
 open import Axiom.Extensionality.Propositional using (Extensionality)
 postulate fun-ext : ∀ {a b} → Extensionality a b
+
+--open import Data.Nat             using (ℕ; zero; suc; _+_; _≤_; z≤n; s≤s; _<_)
 
 {-
    `Prop`-based inequalities. You can instead use the standard library
@@ -222,7 +222,6 @@ open _≃_
 -- Exercise 5 --
 ----------------
 
-
 {-
    We now move on to decidable types. In particular, if we wish to search for
    elements of a list, we need to be able to decide the equality between any two
@@ -340,7 +339,7 @@ module NoDupList where
      Hint: You might find the `∈` relation on lists defined below useful.
   -}
 
-  infix 3 _∈_
+  infix 4 _∈_
 
   data _∈_ {A : Set} : A → List A → Set where
     ∈-here  : {x : A} → {xs : List A} → x ∈ (x ∷ xs)
@@ -381,43 +380,52 @@ module NoDupList where
 ----------------
 
 {-
-   We have memberhood, but now we wish to also make assignments.
+   We have memberhood, but now we wish to also make assignments. Fill the below
+   holes using solutions of previous exercises.
+
+   Note: You will need to do some further work to implement some of these.
 -}
 
 module AssocList (K : DecType) (V : Set) where
 
-  AssocList : Set
-  AssocList = List (carr K × V)
+  Assoc : Set
+  Assoc = List (carr K × V)
 
-  _∈_ : carr K → AssocList → Set
-  k ∈ kvs = k NoDupList.∈ (map proj₁ kvs)
+  {- Elementhood relation -}
+  _∈_ : carr K → Assoc → Set
+  k ∈ kvs = {!!}
 
-  lookup : {k : carr K} {kvs : AssocList} → k ∈ kvs → V
-  lookup {kvs = []} ()
-  lookup {kvs = (_ , v) ∷ _}    NoDupList.∈-here     = v
-  lookup {kvs = (k , v) ∷ kvs} (NoDupList.∈-there p) = lookup p
+  {- Safe lookup -}
+  lookup : {k : carr K} {kvs : Assoc} → k ∈ kvs → V
+  lookup p = {!!}
 
-  _∈?_ : (k : carr K) → (kvs : AssocList) → Dec (k ∈ kvs)
-  k ∈? [] = no λ ()
-  k ∈? ((k' , _) ∷ kvs) with K .test-≡ k k'
-  ... | yes refl = yes NoDupList.∈-here
-  ... | no p with k ∈? kvs
-  ...           | yes q = yes (NoDupList.∈-there q)
-  ...           | no q = no (λ { NoDupList.∈-here → p refl ; (NoDupList.∈-there r) → q r})
+  {- The decidability of the elementhood relation -}
+  _∈?_ : (k : carr K) → (kvs : Assoc) → Dec (k ∈ kvs)
+  k ∈? kvs = {!!}
 
-  _‼_ : (kvs : AssocList) → (k : carr K) → Maybe V
-  kvs ‼ k with k ∈? kvs
-  ... | yes p = just (lookup p)
-  ... | no  _ = nothing
+  {- Lookup returning a maybe -}
+  _‼_ : (kvs : Assoc) → (k : carr K) → Maybe V
+  kvs ‼ k = {!!}
 
-  _[_]≔_ : AssocList → carr K → V → AssocList
-  kvs [ k ]≔ v with k ∈? kvs
-  ... | yes _ = kvs
-  ... | no  _ = (k , v) ∷ kvs
+  {-
+     Update value
+
+     Note: Here if `k` is not in `kvs` we append it to the front, otherwise we
+     step into `kvs` and replace the odl value with the new value.
+  -}
+  _[_]≔_ : Assoc → carr K → V → Assoc
+  kvs [ k ]≔ v = {!!}
 
 
 {-
-   Lets define a common interface we will use for the project.
+   This is a common interface we will use for the project. You can define an
+   alternative implementation here. A more involved implementation will be
+   weighed higher in grading.
+
+   Note: You might not need all of the below functions, and you might need more.
+   This is just a first approximation of basic functionality we want from a
+   lookup table-type structure: checking elementhood, looking up values, and
+   updating the structure.
 -}
 
 module Assoc (K : DecType) (V : Set) where
@@ -441,26 +449,63 @@ module Assoc (K : DecType) (V : Set) where
   kvs [ k ]≔ v = {!!}
 
 
-𝒩 : DecType
-𝒩 .carr = ℕ
-𝒩 .test-≡ zero zero = yes refl
-𝒩 .test-≡ zero (suc n) = no λ ()
-𝒩 .test-≡ (suc m) zero = no λ ()
-𝒩 .test-≡ (suc m) (suc n) with 𝒩 .test-≡ m n
-... | yes refl = yes refl
-... | no m≢n = no (λ {refl → m≢n refl})
+----------------
+-- Exercise 8 --
+----------------
 
-open import Data.Bool using (Bool; true; false; not; _xor_; if_then_else_; _∧_)
-open import Data.Bool.ListAction using (and; or)
-open Assoc 𝒩 Bool
+{-
+   We can now do some rudamentary work with CNF formulae.
 
-Assignment = Assoc
-Literal = ℕ × Bool
-Disjunct = List Literal
-Conjunct = List Disjunct
+   Recall that a formula is in CNF when it is a conjunction of disjunctions of
+   literals, where literals are either variables or negations of variables.
 
-eval : Conjunct → Assignment → Maybe Bool
-eval φ assn = {!!}
+   We will replresent arbitrary conjunctions and disjunctions simply with lists.
+   Literals will be represented by a pair of a natural number (representing the
+   index of the variable) and a boolean value, indicating whether the variable
+   is negated.
+
+   For example, the pair `(7 , false)` will represent the literal `¬x₇` (you can
+   of course also choose to represent this literal by `(7 , true)`. There is no
+   correct choice here, so you are free to chose either).
+
+   Next week we will define a more structured (and Agda-like) definition of a
+   formula, thereby avoiding the above connundrum.
+-}
+
+module _ where
+  𝒩 : DecType
+  𝒩 .carr = ℕ
+  𝒩 .test-≡ zero zero = yes refl
+  𝒩 .test-≡ zero (suc n) = no λ ()
+  𝒩 .test-≡ (suc m) zero = no λ ()
+  𝒩 .test-≡ (suc m) (suc n) with 𝒩 .test-≡ m n
+  ... | yes refl = yes refl
+  ... | no m≢n = no (λ {refl → m≢n refl})
+
+  open import Data.Bool using (Bool; true; false; not; _xor_; if_then_else_; _∧_)
+  open import Data.Bool.ListAction using (and; or)
+  open AssocList 𝒩 Bool
+
+  Assignment = Assoc
+  Literal = ℕ × Bool
+  Disjunct = List Literal
+  Conjunct = List Disjunct
+
+  {-
+     Define an evaluation function for CNF formulae. It should return a value when
+     all of the variables appearing in the formula are present in the given
+     assignment, and return `nothing` otherwise.
+
+     Note: If this means anything to you it might help: Maybe is a monad and the
+     standard library defines the usual things that come with that somewhere in
+     `Data.Maybe`. If you want to use those you should try to find them either in
+     the local files or on the git repo at
+     https://github.com/agda/agda-stdlib/blob/master/src/.
+  -}
+
+  eval : Conjunct → Assignment → Maybe Bool
+  eval φ assn = {!!}
+
 
 -------------------------------------------------------------------
 -- Bonus exercise on logical equivalence of `NoDup` and `NoDup'` --
