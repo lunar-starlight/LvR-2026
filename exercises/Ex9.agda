@@ -1,6 +1,6 @@
 {-# OPTIONS --prop #-}
 ---------------------------------------------------------------------------
--- Week 8 exercises for the Logika v računalništvu course at UL FMF      --
+-- Week 9 exercises for the Logika v računalništvu course at UL FMF      --
 -- Lecturer: Alex Simpson                                                --
 -- Teaching Assistant: Luna Strah                                        --
 --                                                                       --
@@ -10,7 +10,7 @@
 -- Course website: https://ucilnica.fmf.uni-lj.si/course/view.php?id=252 --
 ---------------------------------------------------------------------------
 
-module Ex8 where
+module Ex9 where
 
 open import Data.Empty           using (⊥; ⊥-elim)
 open import Data.Fin             using (Fin; zero; suc)
