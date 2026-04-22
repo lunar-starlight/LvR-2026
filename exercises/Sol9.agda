@@ -118,7 +118,7 @@ list-ext {xs = x ∷ xs} {y ∷ ys} h g =
      x ∷ xs
    ≡⟨ cong (_∷ xs) (g 0 _ _) ⟩
      y ∷ xs
-   ≡⟨ cong (y ∷_) (list-ext (suc-inj h) λ i p q → g (suc i) p q) ⟩
+   ≡⟨ cong (y ∷_) (list-ext (suc-inj h) (g ∘ suc)) ⟩
      y ∷ ys
    ∎
    where

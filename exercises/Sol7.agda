@@ -190,9 +190,9 @@ module WithPropInd where
     (pzn : (n : ℕ) → P zero n)
     (pss : (m n : ℕ) → P m n → P (suc m) (suc n)) where
 
-    ≤-ind : (m n : ℕ) → m ≤ n → P m n
-    ≤-ind zero    n       p = pzn n
-    ≤-ind (suc m) (suc n) p = {!!}
+    -- ≤-ind : (m n : ℕ) → m ≤ n → P m n
+    -- ≤-ind zero    n       p = pzn n
+    -- ≤-ind (suc m) (suc n) p = {!!}
     --≤-ind (suc m) (suc n) p = pss m n (≤-ind m n p)
 
 
@@ -331,7 +331,8 @@ lookup-totalᵀ : {n : ℕ}
               → (i : ℕ)
               → i < n
               → lookup xs i ≡ just tt
-lookup-totalᵀ xs i p = {!!}
+lookup-totalᵀ (x ∷ xs) zero p = refl
+lookup-totalᵀ (x ∷ xs) (suc i) p = lookup-totalᵀ xs i p
 
 
 ----------------
@@ -362,7 +363,9 @@ data Fin : ℕ → Set where
   suc  : {n : ℕ} (i : Fin n) → Fin (suc n)
 
 safe-lookup : {A : Set} {n : ℕ} → Vec A n → Fin n → A
-safe-lookup xs i = {!!}
+safe-lookup [] ()
+safe-lookup (x ∷ xs) zero = x
+safe-lookup (x ∷ xs) (suc i) = safe-lookup xs i
 
 
 ----------------
@@ -379,15 +382,17 @@ safe-lookup xs i = {!!}
    should be able to reverse-engineer it from its use in the type of `lookup-correct` below. If you
    fill the hole with the correct type, the yellow highlighting below will disappear. -}
 
-nat-to-fin : {!!}
-nat-to-fin = {!!}
+nat-to-fin : {n : ℕ} (i : ℕ) → i < n → Fin n
+nat-to-fin {suc n} zero p = zero
+nat-to-fin {suc n} (suc i) p = suc (nat-to-fin i p)
 
 lookup-correct : {A : Set} {n : ℕ}
                → (xs : Vec A n)
                → (i : ℕ)
                → (p : i < n)
                → lookup xs i ≡ just (safe-lookup xs (nat-to-fin i p))
-lookup-correct x i p = {!!}
+lookup-correct (x ∷ xs) zero p = refl
+lookup-correct (x ∷ xs) (suc i) p = lookup-correct xs i p
 
 
 ----------------
@@ -413,7 +418,8 @@ to-vec (x ∷ xs) = x ∷ to-vec xs
 to-list-length : {A : Set} {n : ℕ}
                 → (xs : Vec A n)
                 → n ≡ length (to-list xs)
-to-list-length xs = {!!}
+to-list-length [] = refl
+to-list-length (x ∷ xs) = cong suc (to-list-length xs)
 
 
 
@@ -437,7 +443,11 @@ open import Function using (id; _∘_)
 
 list-vec-list : {A : Set}
               → (to-list ∘ to-vec) ≡ id {A = List A}
-list-vec-list = {!!}
+list-vec-list {A} = fun-ext list-vec-list-aux
+  where
+    list-vec-list-aux : (xs : List A) → (to-list ∘ to-vec) xs ≡ xs
+    list-vec-list-aux [] = refl
+    list-vec-list-aux (x ∷ xs) = cong (x ∷_) (list-vec-list-aux xs)
 
 
 
@@ -465,7 +475,13 @@ data _</≡/>_ (m n : ℕ) : Set where
 -}
 
 test-</≡/> : (m n : ℕ) → m </≡/> n
-test-</≡/> m n = {!!}
+test-</≡/> zero zero = m≡n refl
+test-</≡/> zero (suc n) = m<n tt
+test-</≡/> (suc m) zero = m>n tt
+test-</≡/> (suc m) (suc n) with test-</≡/> m n
+... | m<n x = m<n x
+... | m≡n refl = m≡n refl
+... | m>n x = m>n x
 
 
 -----------------
@@ -519,10 +535,10 @@ data Tree (A : Set) : Set where
 
 insert : Tree ℕ → ℕ → Tree ℕ
 insert empty n = node empty n empty
-insert (node t m u) n with test-</≡/> m n
-... | m<n p = node (insert t n) m u
-... | m≡n p = node t m u
-... | m>n p = node t m (insert u n)
+insert (node t x u) n with test-</≡/> x n
+... | m<n p = node t x (insert u n)
+... | m≡n p = node t x u
+... | m>n p = node (insert t n) x u
 
 {-
    As a sanity check, prove that inserting 12, 27, and 52 into the above
@@ -532,17 +548,17 @@ insert (node t m u) n with test-</≡/> m n
 insert-12 : insert (node (node empty 22 (node empty 32 empty)) 42 (node empty 52 empty)) 12
             ≡
             node (node (node empty 12 empty) 22 (node empty 32 empty)) 42 (node empty 52 empty)
-insert-12 = {!!}
+insert-12 = refl
 
 insert-27 : insert (node (node empty 22 (node empty 32 empty)) 42 (node empty 52 empty)) 27
             ≡
             node (node empty 22 (node (node empty 27 empty) 32 empty)) 42 (node empty 52 empty)
-insert-27 = {!!}
+insert-27 = refl
 
 insert-52 : insert (node (node empty 22 (node empty 32 empty)) 42 (node empty 52 empty)) 52
             ≡
             node (node empty 22 (node empty 32 empty)) 42 (node empty 52 empty)
-insert-52 = {!!}
+insert-52 = refl
 
 
 -----------------
@@ -558,7 +574,9 @@ insert-52 = {!!}
 -}
 
 data _∈_ (n : ℕ) : Tree ℕ → Set where
-  {- EXERCISE: the constructors for the `∈` relation go here -}
+  ∈-here : {t u : Tree ℕ} → n ∈ node t n u
+  ∈-left : {t u : Tree ℕ} {x : ℕ} → n ∈ t → n ∈ node t x u
+  ∈-right : {t u : Tree ℕ} {x : ℕ} → n ∈ u → n ∈ node t x u
 
 
 {-
@@ -578,7 +596,11 @@ data _∈_ (n : ℕ) : Tree ℕ → Set where
 -}
 
 insert-∈ : (t : Tree ℕ) → (n : ℕ) → n ∈ (insert t n)
-insert-∈ t n = {!!}
+insert-∈ empty n = ∈-here
+insert-∈ (node t x u) n with test-</≡/> x n
+... | m<n p = ∈-right (insert-∈ u n)
+... | m≡n refl = ∈-here
+... | m>n p = ∈-left (insert-∈ t n)
 
 
 -------------------------------------
@@ -731,18 +753,18 @@ insert-bst-rec : {lower upper : ℕ∞} (t : Tree ℕ) → (n : ℕ)
                → (q : [ n ] <∞ upper)
                → IsBST-rec lower upper t
                → IsBST-rec lower upper (insert t n)
-insert-bst-rec t n p q empty-bst = node-bst (empty-bst {p = p}) (empty-bst {p = q})
-insert-bst-rec _ n p q (node-bst {t} {u} {m} r r') with test-</≡/> m n
-... | m<n x = node-bst (insert-bst-rec t n p {!!} r) r'
-... | m≡n x = node-bst r r'
-... | m>n x = node-bst r (insert-bst-rec u n {!!} q r')
+insert-bst-rec _ _ p q empty-bst = node-bst (empty-bst {p = p}) (empty-bst {p = q})
+insert-bst-rec _ n p q (node-bst {t} {u} {m} r s) with test-</≡/> m n
+... | m<n x = node-bst r (insert-bst-rec u n x q s)
+... | m≡n refl = node-bst r s
+... | m>n x = node-bst (insert-bst-rec t n p x r) s
 
 insert-bst : (t : Tree ℕ) → (n : ℕ) → IsBST t → IsBST (insert t n)
 insert-bst t n empty-bst = node-bst empty-bst empty-bst
 insert-bst _ n (node-bst {t} {u} {n = m} p q) with test-</≡/> m n
-... | m<n r = node-bst (insert-bst-rec t n tt {!!} p) q
+... | m<n r = node-bst p (insert-bst-rec u n r tt q)
 ... | m≡n r = node-bst p q
-... | m>n r = node-bst p (insert-bst-rec u n {!!} tt q)
+... | m>n r = node-bst (insert-bst-rec t n tt r p) q
 
 -----------------
 -- Exercise 17 --
@@ -768,6 +790,16 @@ insert-bst _ n (node-bst {t} {u} {n = m} p q) with test-</≡/> m n
    trying to prove, relating element-wise equality of vectors to the `≡` relation on vectors, etc.
    So we suggest you leave this one for the very last. -}
 
+vec-list-conv : {A : Set} {n : ℕ}
+              → (xs : Vec A n)
+              → Vec A (length (to-list xs))
+vec-list-conv []       = []
+vec-list-conv (x ∷ xs) = x ∷ vec-list-conv xs
+
 vec-list-vec : {A : Set} {n : ℕ}
-             → to-vec ∘ to-list ≡ {!!}
-vec-list-vec = refl
+             → to-vec ∘ to-list ≡ vec-list-conv {A} {n}
+vec-list-vec {A} {n} = fun-ext aux
+  where
+    aux : {n : ℕ} → (xs : Vec A n) → (to-vec ∘ to-list) xs ≡ vec-list-conv xs
+    aux [] = refl
+    aux (x ∷ xs) = cong (x ∷_) (aux xs)
