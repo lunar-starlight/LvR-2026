@@ -518,6 +518,7 @@ module AssocList (K : DecType) (V : Set) where
    updating the structure.
 -}
 
+{-
 module Assoc (K : DecType) (V : Set) where
 
   Assoc : Set
@@ -537,7 +538,7 @@ module Assoc (K : DecType) (V : Set) where
 
   _[_]≔_ : Assoc → carr K → V → Assoc
   kvs [ k ]≔ v = {!!}
-
+-}
 
 ----------------
 -- Exercise 8 --
