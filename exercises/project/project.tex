@@ -25,25 +25,6 @@
 % \setmathfont{Asana Math}[range={"007B,"007D}]  % {}
 \setmathfont{Asana Math}[range={8709,\setminus,"2216,"29F5,"219D}]  % U+2205, emptyset
 
-\ExplSyntaxOn
-\NewDocumentEnvironment{problemdef}{+b}
-{\tl_gset:Nn \g_tmpa_tl {#1}}
-{
-  \begin{problem}
-    \begin{mathpar}
-      \tl_use:N \g_tmpa_tl
-    \end{mathpar}
-  \end{problem}
-  \begin{solution}
-    %\let\emptybox{\boxed{##1}}
-    \DeclareDocumentCommand{\emptybox}{m}{\boxed{##1}}
-    \begin{mathpar}
-      \tl_use:N \g_tmpa_tl
-    \end{mathpar}
-  \end{solution}
-}
-\ExplSyntaxOff
-
 \newcommand{\seq}[3]{#1 ⊢ #2 : #3}
 \def\emp{\bullet}
 \newcommand{\lam}[3]{λ #1 : #2.\: #3}
@@ -104,18 +85,7 @@
     &&&&&&&&&&&&&         &|&&& \neg \formula&&&&&&&&&&&&\\
     &&&&&&&&&&&&&         &|&&& \formula ∧ \formula&&&&&&&&&&&&\\
     &&&&&&&&&&&&&         &|&&& \formula ∨ \formula&&&&&&&&&&&&
-  \end{align}
-  %\[
-  % \begin{mathpar}
-  %   \inferrule {n : ℕ} {\var n : \formula}
-  %   \qquad
-  %   \inferrule {φ : \formula} {\til φ : \formula}
-  %   \\
-  %   \inferrule {φ : \formula \\ ψ : \formula} {φ ∧ ψ : \formula}
-  %   \qquad
-  %   \inferrule {φ : \formula \\ ψ : \formula} {φ ∨ ψ : \formula}
-  % \end{mathpar}
-  %\]
+  \end{align*}
 \end{problem}
 
 
@@ -127,18 +97,7 @@
     &&&&&&&&&&&\nnf &→&&& \lit&&&&&&&&&&&&\\
     &&&&&&&&&&&     &|&&& \nnf ∧ \nnf&&&&&&&&&&&&\\
     &&&&&&&&&&&     &|&&& \nnf ∨ \nnf&&&&&&&&&&&&
-  \end{align}
-  % \[
-  % \begin{mathpar}
-  %   \inferrule {n : ℕ} {\var n : \nnf}
-  %   \qquad
-  %   \inferrule {n : ℕ} {\til \var n : \nnf}
-  %   \\
-  %   \inferrule {φ : \nnf \\ ψ : \nnf} {φ ∧ ψ : \nnf}
-  %   \qquad
-  %   \inferrule {φ : \nnf \\ ψ : \nnf} {φ ∨ ψ : \nnf}
-  % \end{mathpar}
-  % \]
+  \end{align*}
 \end{problem}
 
 \begin{problem}[*]
@@ -184,7 +143,7 @@ open import Relation.Nullary using (yes; no; ¬_; ¬?)
     &&&&&&&&&&&\disj &→&&& \lit&&&&&&&&&&&&\\
     &&&&&&&&&&&      &|&&& \lit ∨ \disj&&&&&&&&&&&&\\
     &&&&&&&&&&&\cnf  &→&&& \disj ∨ \cnf&&&&&&&&&&&&
-  \end{align}
+  \end{align*}
 \end{problem}
 
 \begin{problem}[*]
@@ -192,16 +151,25 @@ open import Relation.Nullary using (yes; no; ¬_; ¬?)
 \end{problem}
 
 \begin{problem}[**/***]
-  Write an SAT solver for \cnf formulas.
+  Write an SAT solver for \cnf{} formulas. It should output either an assignment such that evaluating the formula at that assignment evaluates to \texttt{true} or that no such assignment exists.
 
   Note: a more complex implementation (e.~g. DPLL) will be graded higher.
 \end{problem}
 
-\begin{problem}[**/***]
-  Write a function that converts an \nnf formula to an equisatisfiable \cnf formula.
-
-  Note: a more complex implementation (e.~g. Tseytin transformation) will be graded higher.
+\begin{problem}[**]
+  Show that the SAT solver you implemented is indeed correct, if that is not obvious from the output type of the SAT solver.
 \end{problem}
+
+\begin{problem}[**/***]
+  Write a function that converts an \nnf{} formula to an equisatisfiable \cnf formula.
+
+  Note: it is intended for you to attempt to implement the Tseytin transformation. A simpler implementation will be accepted for partial credit.
+\end{problem}
+
+\begin{problem}[****?]
+  Show that the formula produced by the above function is equisatisfiable to the given formula.
+\end{problem}
+
 
 
 \end{document}
