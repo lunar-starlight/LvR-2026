@@ -193,8 +193,8 @@ open _≃_
           ≃
           Σ[ xy ∈ Σ[ x ∈ A ] (B x) ] (C (proj₁ xy) (proj₂ xy))
 Σ-assoc = record
-  { to      = λ z → (z .proj₁ , z .proj₂ .proj₁) , z .proj₂ .proj₂
-  ; from    = λ z → proj₁ (z .proj₁) , proj₂ (z .proj₁) , z .proj₂
+  { to      = λ (a , b , c) → (a , b) , c
+  ; from    = λ ((a , b) , c) → a , b , c
   ; from∘to = λ _ → refl
   ; to∘from = λ _ → refl
   }
@@ -208,8 +208,8 @@ open _≃_
         → Σ[ x ∈ A ] (Σ[ y ∈ B x ] (C x y))
           ≃
           Σ[ xy ∈ Σ[ x ∈ A ] (B x) ] (C (proj₁ xy) (proj₂ xy))
-to Σ-assoc'      = λ z → (z .proj₁ , z .proj₂ .proj₁) , z .proj₂ .proj₂
-from Σ-assoc'    = λ z → proj₁ (z .proj₁) , proj₂ (z .proj₁) , z .proj₂
+to Σ-assoc'      = λ (a , b , c) → (a , b) , c
+from Σ-assoc'    = λ ((a , b) , c) → a , b , c
 from∘to Σ-assoc' = λ _ → refl
 to∘from Σ-assoc' = λ _ → refl
 
