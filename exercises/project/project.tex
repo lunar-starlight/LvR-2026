@@ -1,0 +1,213 @@
+\documentclass{article}
+
+\input{../definitions.tex}
+
+\usepackage{mathpartir}
+\usepackage{fvextra}
+\newdef{problem}
+\usepackage[a4paper]{geometry}
+\newpf{solution}{}
+%\usepackage[a4paper]{geometry}
+%\NewDocumentEnvironment{solution}{+b}{}{}
+
+\RequirePackage{mathtools}
+\RequirePackage{unicode-math}
+\RequirePackage{polyglossia}
+
+\setmainfont{Latin Modern Roman}
+% \setmainfont{TeX Gyre Pagella}
+% \setmathfont{TeX Gyre Pagella Math}
+\setmathfont{Latin Modern Math}
+\setmathfont{Asana Math}[range={scr}]
+\setmathfont{STIX Two Math-Regular}[range={bb,"1D538-"1D56B,"0211D}]
+\setmathfont{STIX Two Math-Regular}[range={"2102,"210D,"2115,"2119,"211A,"211D,"2124}]
+% \setmathfont{TeX Gyre Pagella Math}[range={8730}] %sqrt
+% \setmathfont{Asana Math}[range={"007B,"007D}]  % {}
+\setmathfont{Asana Math}[range={8709,\setminus,"2216,"29F5,"219D}]  % U+2205, emptyset
+
+\ExplSyntaxOn
+\NewDocumentEnvironment{problemdef}{+b}
+{\tl_gset:Nn \g_tmpa_tl {#1}}
+{
+  \begin{problem}
+    \begin{mathpar}
+      \tl_use:N \g_tmpa_tl
+    \end{mathpar}
+  \end{problem}
+  \begin{solution}
+    %\let\emptybox{\boxed{##1}}
+    \DeclareDocumentCommand{\emptybox}{m}{\boxed{##1}}
+    \begin{mathpar}
+      \tl_use:N \g_tmpa_tl
+    \end{mathpar}
+  \end{solution}
+}
+\ExplSyntaxOff
+
+\newcommand{\seq}[3]{#1 ⊢ #2 : #3}
+\def\emp{\bullet}
+\newcommand{\lam}[3]{λ #1 : #2.\: #3}
+\renewcommand{\pair}[2]{\p{#1, #2}}
+\newcommand{\match}[5]{\textsf{match}\:{#1}\:| \inl {#2} ↦ {#3} | \inr {#4} ↦ {#5}}
+\newcommand{\emptybox}[1]{\boxed{\phantom{#1}}}
+\newcommand{\nullaryrule}[2]{
+  \ExpandArgs{c}\DeclareDocumentCommand{#1}{m}{\inferrule*[right=\rlap{\(#2\)}] { } {##1}}
+}
+\newcommand{\unaryrule}[2]{
+  \ExpandArgs{c}\DeclareDocumentCommand{#1}{mm}{\inferrule*[right=\rlap{\(#2\)}] {##2} {##1}}
+}
+\newcommand{\binaryrule}[2]{
+  \ExpandArgs{c}\DeclareDocumentCommand{#1}{mmm}{\inferrule*[right=\rlap{\(#2\)}] {##2 \\ ##3} {##1}}
+}
+\newcommand{\ternaryrule}[2]{
+  \ExpandArgs{c}\DeclareDocumentCommand{#1}{mmmm}{\inferrule*[right=\rlap{\(#2\)}] {##2 \\ ##3 \\ ##4} {##1}}
+}
+%\newcommand{\ax}[1]{\inferrule*[right=\textsc{Ax}] { } {#1}}
+\nullaryrule{ax}{\textsc{Ax}}
+\binaryrule{prodI}{×\textsc{I}}
+\unaryrule{prodEL}{×\textsc{E}₁}
+\unaryrule{prodER}{×\textsc{E}₂}
+\unaryrule{funI}{→\textsc{I}}
+\binaryrule{funE}{→\textsc{E}}
+\unaryrule{sumIL}{+\textsc{I}{}₁}
+\unaryrule{sumIR}{+\textsc{I}{}₂}
+\ternaryrule{sumE}{+\textsc{E}}
+
+\def\formula{\texttt{Formula}}
+\def\nnf{\texttt{NNF}}
+\def\cnf{\texttt{CNF}}
+\def\var{\texttt{Var }}
+%\def\til{\sim}
+\def\tonnf{\texttt{to-nnf}}
+\def\eval{\texttt{eval}}
+\def\evalnnf{\texttt{eval-nnf}}
+\def\evalcnf{\texttt{eval-cnf}}
+\def\assignment{\texttt{Assignment}}
+\def\bool{\texttt{Bool}}
+\def\maybe{\texttt{Maybe }}
+\def\fin{\texttt{Fin }}
+\def\lit{\texttt{Literal}}
+\def\disj{\texttt{Disjunct}}
+
+\newcommand{\pr}[2]{\textsf{pr}_{#1} {#2}}
+
+\title{Logika v Računalništvu project}
+\date{Dated 2026-04-29}
+\begin{document}
+\maketitle
+
+
+\begin{problem}[*]
+  Define a type of formulas called \formula, with the following grammar:
+  \begin{align*}
+    &&&&&&&&&&&&&\formula &→&&& \var n&&&&&&&&&&&&\\
+    &&&&&&&&&&&&&         &|&&& \neg \formula&&&&&&&&&&&&\\
+    &&&&&&&&&&&&&         &|&&& \formula ∧ \formula&&&&&&&&&&&&\\
+    &&&&&&&&&&&&&         &|&&& \formula ∨ \formula&&&&&&&&&&&&
+  \end{align}
+  %\[
+  % \begin{mathpar}
+  %   \inferrule {n : ℕ} {\var n : \formula}
+  %   \qquad
+  %   \inferrule {φ : \formula} {\til φ : \formula}
+  %   \\
+  %   \inferrule {φ : \formula \\ ψ : \formula} {φ ∧ ψ : \formula}
+  %   \qquad
+  %   \inferrule {φ : \formula \\ ψ : \formula} {φ ∨ ψ : \formula}
+  % \end{mathpar}
+  %\]
+\end{problem}
+
+
+\begin{problem}[*]
+  Define a type of negation normal form formulas called \nnf, with the following grammar:
+  \begin{align*}
+    &&&&&&&&&&&\lit &→&&& \var n&&&&&&&&&&&&\\
+    &&&&&&&&&&&     &|&&& ¬ \var n&&&&&&&&&&&&\\
+    &&&&&&&&&&&\nnf &→&&& \lit&&&&&&&&&&&&\\
+    &&&&&&&&&&&     &|&&& \nnf ∧ \nnf&&&&&&&&&&&&\\
+    &&&&&&&&&&&     &|&&& \nnf ∨ \nnf&&&&&&&&&&&&
+  \end{align}
+  % \[
+  % \begin{mathpar}
+  %   \inferrule {n : ℕ} {\var n : \nnf}
+  %   \qquad
+  %   \inferrule {n : ℕ} {\til \var n : \nnf}
+  %   \\
+  %   \inferrule {φ : \nnf \\ ψ : \nnf} {φ ∧ ψ : \nnf}
+  %   \qquad
+  %   \inferrule {φ : \nnf \\ ψ : \nnf} {φ ∨ ψ : \nnf}
+  % \end{mathpar}
+  % \]
+\end{problem}
+
+\begin{problem}[*]
+  Construct a function \tonnf{} of type \(\formula → \nnf\) that converts a formula to an equivalent formula in negation normal form.
+
+  Note: You may find a more suitable name for the functions.
+\end{problem}
+
+
+\begin{problem}[**]
+  Copy the \texttt{Assoc} module from week 9 exercises and complete it to a fully working implementation of an associative structure you want (associative list, dictionary, etc.). For example, use the \texttt{NoDup} structure from the exercises.
+
+  Then use
+\begin{Verbatim}[breaklines, breakanywhere, mathescape, codes={\catcode`_=12}]
+open Assoc $ℕ$ test-$≡$ Bool
+Assignment : Set
+Assignment = Assoc
+\end{Verbatim}
+
+  Note: it is also OK to specialise the definitions to \(K = ℕ\) and \(V = \bool\), for example to use \(\fin n\).
+  You are also free to use the \texttt{stdlib} definitions like
+\begin{Verbatim}[breaklines, breakanywhere, mathescape, codes={\catcode`_=12}]
+open import Relation.Binary using (Decidable; DecidableEquality)
+open import Data.List.Relation.Unary.Any using (Any; any?)
+open import Data.List.Relation.Unary.All using (All; all?)
+open import Relation.Nullary using (yes; no; ¬_; ¬?)
+\end{Verbatim}
+\end{problem}
+
+\begin{problem}[*]
+  Define an evaluation function \(\eval : \assignment → \formula → \maybe \bool\) assigning to each assignment of variables and formula its truth value.
+\end{problem}
+
+\begin{problem}[*]
+  Define an evaluation function \(\evalnnf : \assignment → \nnf → \maybe \bool\) assigning to each assignment of variables and negation normal from formula its truth value.
+\end{problem}
+
+\begin{problem}[*]
+  Define a type of conjunction normal form formulas called \cnf, with the following grammar:
+  \begin{align*}
+    &&&&&&&&&&&\lit  &→&&& \var n&&&&&&&&&&&&\\
+    &&&&&&&&&&&      &|&&& ¬ \var n&&&&&&&&&&&&\\
+    &&&&&&&&&&&\disj &→&&& \lit&&&&&&&&&&&&\\
+    &&&&&&&&&&&      &|&&& \lit ∨ \disj&&&&&&&&&&&&\\
+    &&&&&&&&&&&\cnf  &→&&& \disj ∨ \cnf&&&&&&&&&&&&
+  \end{align}
+\end{problem}
+
+\begin{problem}[*]
+  Define an evaluation function \(\evalcnf : \assignment → \cnf → \maybe \bool\) assigning to each assignment of variables and conjunction normal from formula its truth value.
+\end{problem}
+
+\begin{problem}[**/***]
+  Write an SAT solver for \cnf formulas.
+
+  Note: a more complex implementation (e.~g. DPLL) will be graded higher.
+\end{problem}
+
+\begin{problem}[**/***]
+  Write a function that converts an \nnf formula to an equisatisfiable \cnf formula.
+
+  Note: a more complex implementation (e.~g. Tseytin transformation) will be graded higher.
+\end{problem}
+
+
+\end{document}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
